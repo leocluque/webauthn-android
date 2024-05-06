@@ -1,18 +1,17 @@
-
 # WebAuthnKit (Android)
 
-This library provides you a way to handle W3C Web Authentication API (a.k.a. WebAuthN / FIDO 2.0) easily.
+Esta biblioteca oferece uma maneira fácil de lidar com a API de Autenticação na Web do W3C (também conhecida como WebAuthN / FIDO 2.0).
 
-## Attention
+## Atenção
 
-THIS VERSION IS NOT STABLE YET
+ESTA VERSÃO AINDA NÃO É ESTÁVEL
 
-This library doens't work as expected on Android5 currently.
+Esta biblioteca não funciona como esperado no Android5 atualmente.
 
-## Installation
+## Instalação
 
 
-In your application's build.gradle
+No build.gradle da sua aplicação:
 
 ```gradle
 dependencies {
@@ -31,11 +30,11 @@ pom
 </dependency>
 ```
 
-## Getting Started
+## Começando
 
-### AutoBackup setting
+### Configuração do AutoBackup
 
-Make sure to exclude 'webauthnkit.db'
+Certifique-se de excluir 'webauthnkit.db'
 
 - AndroidManifest.xml
 ```xml
@@ -52,20 +51,19 @@ Make sure to exclude 'webauthnkit.db'
 </full-backup-content>
 ```
 
-Or you can set allowBackup="false" simply.
+Ou você pode simplesmente definir allowBackup="false".
 
 ```xml
 <application
         android:allowBackup="false">
 ```
 
-### Activity
+### Atividade
 
-WebAuthnKit uses Kotlin's experimental features.
-So, add some annotations on your Activity.
+O WebAuthnKit usa recursos experimentais do Kotlin. Portanto, adicione algumas anotações à sua Activity.
 
-`FragmentActivity` is required to be bound with WebAuthnKit's UI features.
-Of cource, `androidx.appcompat.app.AppCompatActivity` is also OK.
+`FragmentActivity` é necessário para ser vinculado aos recursos de UI do WebAuthnKit.
+Claro, `androidx.appcompat.app.AppCompatActivity` também está bem.
 
 ```kotlin
 @ExperimentalCoroutinesApi
@@ -75,9 +73,9 @@ class AuthenticationActivity : AppCompatActivity() {
 }
 ```
 
-### Setup your WebAuthnClient
+### Configurar seu WebAuthnClient
 
-At first, prepare UserConsentUI on your Activity.
+Primeiro, prepare a UserConsentUI na sua Activity.
 
 ```kotlin
 import webauthnkit.core.authenticator.internal.ui.UserConsentUI
@@ -89,9 +87,9 @@ override fun onCreate(savedInstanceState: Bundle?) {
   super.onCreate(savedInstanceState)
   consentUI = UserConsentUIFactory.create(this)
 
-  // You can configure consent-ui here
-  // consentUI.config.registrationDialogTitle = "New Login Key"
-  // consentUI.config.selectionDialogTitle = "Select Key"
+  // Você pode configurar consent-ui aqui
+  // consentUI.config.registrationDialogTitle = "Nova Chave de Login"
+  // consentUI.config.selectionDialogTitle = "Selecione a Chave"
   // ...
 }
 
@@ -100,7 +98,7 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
 }
 ```
 
-Then, create WebAuthnClient
+Então, crie o WebAuthnClient
 
 ```kotlin
 import webauthnkit.core.client.WebAuthnClient
@@ -110,14 +108,14 @@ val client = WebAuthnClient.create(
   origin   = "https://example.org"
   ui       = consentUI!!
 )
-// You can configure client here
+// Você pode configurar o cliente aqui
 // client.maxTimeout = 120
 // client.defaultTimeout = 60
 ```
 
-### Registration Flow
+### Fluxo de Registro
 
-With a flow which is described in following documents, WebAuthnClient creates a credential if it succeeded.
+Com um fluxo que é descrito nos seguintes documentos, o WebAuthnClient cria uma credencial se for bem-sucedido.
 
 - https://www.w3.org/TR/webauthn/#createCredential
 - https://www.w3.org/TR/webauthn/#op-make-cred
@@ -134,8 +132,8 @@ private suspend fun executeRegistration() {
     options.user.displayName = userDisplayName
     options.user.icon        = userIconURL
     options.rp.id            = "https://example.org"
-    options.rp.name          = "your_service_name"
-    options.rp.icon          = yourServiceIconURL
+    options.rp.name          = "nome_do_seu_serviço"
+    options.rp.icon          = suaURLdeIconeDoServiço
     options.attestation      = attestationConveyance
 
     options.addPubKeyCredParam(
@@ -151,31 +149,31 @@ private suspend fun executeRegistration() {
 
         val credential = client.create(options)
 
-        // send parameters to your server
+        // enviar parâmetros para seu servidor
         // credential.id
         // credential.rawId
         // credential.response.attestationObject
         // credential.response.clientDataJSON
 
     } catch (e: Exception) {
-        // error handling
+        // tratamento de erro
     }
 
 }
 
 ```
 
-If you would like to stop while client is in progress, you can call cancel method.
+Se você quiser parar enquanto o cliente está em andamento, pode chamar o método cancel.
 
 ```kotlin
 client.cancel()
 ```
 
-`webauthnkit.core.CancelledException` will be thrown in your suspend function.
+`webauthnkit.core.CancelledException` será lançado na sua função suspendida.
 
-### Authentication Flow
+### Fluxo de Autenticação
 
-With a flow which is described in following documents, WebAuthnClient finds credentials, let user to select one (if multiple), and signs the response with it.
+Com um fluxo que é descrito nos seguintes documentos, o WebAuthnClient encontra credenciais, permite que o usuário selecione uma (se múltiplas) e assina a resposta com ela.
 
 - https://www.w3.org/TR/webauthn/#getAssertion
 - https://www.w3.org/TR/webauthn/#op-get-assertion
@@ -199,7 +197,7 @@ private suspend fun executeAuthentication() {
 
         val assertion = client.get(options)
 
-        // send parameters to your server
+        // enviar parâmetros para seu servidor
         //assertion.id
         //assertion.rawId
         //assertion.response.authenticatorData
@@ -208,44 +206,43 @@ private suspend fun executeAuthentication() {
         //assertion.response.clientDataJSON
 
     } catch (e: Exception) {
-        // error handling
+        // tratamento de erro
     }
 
 }
 ```
 
-## Features
+## Recursos
 
-### Not Implemented yet
+### Ainda não implementado
 
 - Token Binding
-- Extensions
-- BLE Authenticator
-- BLE Roaming Service
-- SafetyNet Attestation
+- Extensões
+- Autenticador BLE
+- Serviço de Roaming BLE
+- Attestation do SafetyNet
 
-### Key Algorithm Support
+### Suporte de Algoritmo de Chave
 
 - ES256
 
-### Resident Key
+### Chave Residente
 
-InternalAuthenticator forces to use resident-key.
+O InternalAuthenticator força o uso de chave residente.
 
 ### Attestation
 
-Currently, this library supports only self-attestation.
+Atualmente, esta biblioteca suporta apenas auto-attestation.
 
-## See Also
+## Veja também
 
 - https://www.w3.org/TR/webauthn/
 - https://fidoalliance.org/specs/fido-v2.0-rd-20170927/fido-client-to-authenticator-protocol-v2.0-rd-20170927.html
 
-## License
+## Licença
 
 MIT-LICENSE
 
-## Author
+## Autor
 
-Lyo Kato <lyo.kato at gmail.com>
-
+Lyo K
