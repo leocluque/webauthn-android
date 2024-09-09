@@ -1,0 +1,13 @@
+<resources>
+    <string-array name="user_verification_options">
+        <item>Required</item>
+        <item>Preferred</item>
+        <item>Discouraged</item>
+    </string-array>
+
+    <string-array name="attestation_conveyance_options">
+        <item>Direct</item>
+        <item>Indirect</item>
+        <item>None</item>
+    </string-array>
+</resources>

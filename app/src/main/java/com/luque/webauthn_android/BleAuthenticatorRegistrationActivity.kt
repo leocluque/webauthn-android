@@ -2,6 +2,7 @@ package com.luque.webauthn_android
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUIFactory
@@ -18,40 +19,30 @@ class BleAuthenticatorRegistrationActivity : AppCompatActivity() {
         val TAG = BleAuthenticatorRegistrationActivity::class.simpleName
     }
 
-    var consentUI: UserConsentUI? = null
-    var bleFidoService: BleFidoService? = null
+    private var consentUI: UserConsentUI? = null
+    private var bleFidoService: BleFidoService? = null
+    private lateinit var startButton: Button
+    private lateinit var stopButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_ble_authenticator_registration) // Define o layout XML
 
         title = "REGISTRATION BLE SERVICE"
 
-//        verticalLayout {
-//
-//            padding = dip(10)
-//
-//            button("START") {
-//                textSize = 24f
-//
-//                onClick {
-//
-//                    onStartClicked()
-//
-//                }
-//
-//            }
-//
-//            button("STOP") {
-//                textSize = 24f
-//
-//                onClick {
-//
-//                    onStopClicked()
-//
-//                }
-//            }
-//
-//        }
+        // Inicialize os botões
+        startButton = findViewById(R.id.start_button)
+        stopButton = findViewById(R.id.stop_button)
+
+        // Configura o clique do botão START
+        startButton.setOnClickListener {
+            onStartClicked()
+        }
+
+        // Configura o clique do botão STOP
+        stopButton.setOnClickListener {
+            onStopClicked()
+        }
     }
 
     private fun onStartClicked() {
@@ -74,15 +65,9 @@ class BleAuthenticatorRegistrationActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         WAKLogger.d(TAG, "onActivityResult")
         consentUI?.onActivityResult(requestCode, resultCode, data)
-        /*
-        if (consentUI != null && consentUI!!.onActivityResult(requestCode, resultCode, data)) {
-            return
-        }
-        */
     }
 
-    val bleServiceListener = object: BleFidoServiceListener {
-
+    private val bleServiceListener = object : BleFidoServiceListener {
         override fun onConnected(address: String) {
             WAKLogger.d(TAG, "onConnected")
         }
@@ -96,16 +81,12 @@ class BleAuthenticatorRegistrationActivity : AppCompatActivity() {
         }
     }
 
-
     private fun createBleFidoService() {
-
         consentUI = UserConsentUIFactory.create(this)
-
         bleFidoService = BleFidoService.create(
-            activity  = this,
-            ui        = consentUI!!,
-            listener  = bleServiceListener
+            activity = this,
+            ui = consentUI!!,
+            listener = bleServiceListener
         )
     }
-
 }

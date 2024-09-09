@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/raw_id_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Raw Id" />
+
+    <EditText
+        android:id="@+id/raw_id_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/cred_id_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Credential Id (Base64 URL)" />
+
+    <EditText
+        android:id="@+id/cred_id_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/client_data_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Client Data JSON" />
+
+    <EditText
+        android:id="@+id/client_data_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:layout_marginBottom="16dp"
+        android:minLines="5"
+        android:maxLines="10"/>
+
+    <TextView
+        android:id="@+id/authenticator_data_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Authenticator Data (Base64 URL)" />
+
+    <EditText
+        android:id="@+id/authenticator_data_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:layout_marginBottom="16dp"
+        android:minLines="5"
+        android:maxLines="10"/>
+
+    <TextView
+        android:id="@+id/signature_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Signature (Hex)" />
+
+    <EditText
+        android:id="@+id/signature_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/user_handle_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User Handle" />
+
+    <EditText
+        android:id="@+id/user_handle_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/close_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CLOSE" />
+</LinearLayout>

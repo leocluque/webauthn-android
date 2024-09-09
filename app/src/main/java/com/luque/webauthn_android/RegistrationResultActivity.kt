@@ -1,6 +1,8 @@
 package com.luque.webauthn_android
 
 import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.WAKLogger
@@ -13,6 +15,7 @@ class RegistrationResultActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_registration_result)
 
         val credId = intent.getStringExtra("CRED_ID")
         val credRaw = intent.getStringExtra("CRED_RAW")
@@ -36,60 +39,19 @@ class RegistrationResultActivity : AppCompatActivity() {
             }
         }
 
-//        verticalLayout {
-//
-//            padding = dip(10)
-//
-//            textView {
-//                text = "Raw Id"
-//            }
-//
-//            val rawIdField = editText {
-//                singleLine = true
-//            }
-//            rawIdField.setText(credRaw)
-//
-//            textView {
-//                text = "Credential Id (Base64 URL)"
-//            }
-//
-//            val credIdField = editText {
-//                singleLine = true
-//            }
-//            credIdField.setText(credId)
-//
-//            textView {
-//                text = "Client Data JSON"
-//            }
-//
-//            val clientDataField = editText {
-//                inputType =  InputType.TYPE_TEXT_FLAG_MULTI_LINE
-//                height = dip(100)
-//            }
-//            clientDataField.setText(clientJSON)
-//
-//            textView {
-//                text = "Attestation Object (Base64 URL)"
-//            }
-//
-//            val attestationField = editText {
-//                inputType =  InputType.TYPE_TEXT_FLAG_MULTI_LINE
-//                height = dip(100)
-//            }
-//            attestationField.setText(attestation)
-//
-//
-//            button("CLOSE") {
-//                onClick {
-//                    onCloseButtonClicked()
-//                }
-//            }
-//        }
-    }
+        // Bind the views
+        findViewById<EditText>(R.id.raw_id_field).setText(credRaw)
+        findViewById<EditText>(R.id.cred_id_field).setText(credId)
+        findViewById<EditText>(R.id.client_data_field).setText(clientJSON)
+        findViewById<EditText>(R.id.attestation_field).setText(attestation)
 
+        // Set up button click listener
+        findViewById<Button>(R.id.close_button).setOnClickListener {
+            onCloseButtonClicked()
+        }
+    }
 
     private fun onCloseButtonClicked() {
         finish()
     }
-
 }

@@ -2,21 +2,11 @@ package com.luque.webauthn_android
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.luque.webauthn.util.WAKLogger
-import com.luque.webauthn_android.AuthenticationActivity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-
-/* currently, comment out BLE related code
-import android.Manifest
-import permissions.dispatcher.*
-import androidx.appcompat.app.AlertDialog
-import com.google.android.material.snackbar.Snackbar
-import android.content.pm.PackageManager
-*/
-
-// @RuntimePermissions
 @ExperimentalCoroutinesApi
 @ExperimentalUnsignedTypes
 class MainActivity : AppCompatActivity() {
@@ -29,50 +19,38 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main) // Define o layout XML
 
         WAKLogger.available = true
 
-//        verticalLayout {
-//
-//            padding = dip(10)
-//
-//            button("Registration") {
-//                textSize = 24f
-//
-//                onClick {
-//                    goToRegistrationActivity()
-//                }
-//
-//            }
-//
-//            button("Authentication") {
-//                textSize = 24f
-//
-//                onClick {
-//                    goToAuthenticationActivity()
-//                }
-//            }
+        // Inicialize os botões
+        val registrationButton: Button = findViewById(R.id.registration_button)
+        val authenticationButton: Button = findViewById(R.id.authentication_button)
 
-            /*
-            button("Registration (BLE)") {
-                textSize = 24f
-
-                onClick {
-                    goToBleRegistrationActivity()
-                }
-
-            }
-
-            button("Authentication (BLE)") {
-                textSize = 24f
-
-                onClick {
-                    goToBleAuthenticationActivity()
-                }
-            }
-            */
-
+        // Configura o clique do botão Registration
+        registrationButton.setOnClickListener {
+            goToRegistrationActivity()
         }
+
+        // Configura o clique do botão Authentication
+        authenticationButton.setOnClickListener {
+            goToAuthenticationActivity()
+        }
+
+        /*
+        // Configura o clique do botão Registration (BLE)
+        val registrationBleButton: Button = findViewById(R.id.registration_ble_button)
+        registrationBleButton.setOnClickListener {
+            goToBleRegistrationActivity()
+        }
+
+        // Configura o clique do botão Authentication (BLE)
+        val authenticationBleButton: Button = findViewById(R.id.authentication_ble_button)
+        authenticationBleButton.setOnClickListener {
+            goToBleAuthenticationActivity()
+        }
+        */
+    }
 
     private fun goToRegistrationActivity() {
         val intent = Intent(this, RegistrationActivity::class.java)
@@ -84,10 +62,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-
     /*
     private fun checkPermission(): Boolean {
-
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)  != PackageManager.PERMISSION_GRANTED) {
             WAKLogger.d(TAG, "not granted!")
             requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_PERMISSIONS)

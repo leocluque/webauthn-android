@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".RegistrationActivity">
+
+    <!-- User ID -->
+    <TextView
+        android:id="@+id/userIdLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User Id (Base64)"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/userIdField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/userIdLabel"
+        android:hint="User Id"
+        android:inputType="text" />
+
+    <!-- User Name -->
+    <TextView
+        android:id="@+id/userNameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User Name"
+        android:textSize="16sp"
+        android:layout_below="@id/userIdField"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/userNameField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/userNameLabel"
+        android:hint="User Name"
+        android:inputType="text" />
+
+    <!-- User Display Name -->
+    <TextView
+        android:id="@+id/userDisplayNameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User Display Name"
+        android:textSize="16sp"
+        android:layout_below="@id/userNameField"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/userDisplayNameField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/userDisplayNameLabel"
+        android:hint="User Display Name"
+        android:inputType="text" />
+
+    <!-- User Icon URL -->
+    <TextView
+        android:id="@+id/userIconURLLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User Icon URL (Optional)"
+        android:textSize="16sp"
+        android:layout_below="@id/userDisplayNameField"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/userIconURLField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/userIconURLLabel"
+        android:hint="User Icon URL"
+        android:inputType="text" />
+
+    <!-- Relying Party -->
+    <TextView
+        android:id="@+id/relyingPartyLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Relying Party"
+        android:textSize="16sp"
+        android:layout_below="@id/userIconURLField"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/relyingPartyField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/relyingPartyLabel"
+        android:hint="Relying Party"
+        android:inputType="text" />
+
+    <!-- Relying Party Icon -->
+    <TextView
+        android:id="@+id/relyingPartyIconLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Relying Party Icon"
+        android:textSize="16sp"
+        android:layout_below="@id/relyingPartyField"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/relyingPartyIconField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/relyingPartyIconLabel"
+        android:hint="Relying Party Icon"
+        android:inputType="text" />
+
+    <!-- Challenge -->
+    <TextView
+        android:id="@+id/challengeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Challenge (Hex)"
+        android:textSize="16sp"
+        android:layout_below="@id/relyingPartyIconField"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/challengeField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/challengeLabel"
+        android:hint="Challenge"
+        android:inputType="text" />
+
+    <!-- User Verification Spinner -->
+    <TextView
+        android:id="@+id/userVerificationLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User Verification"
+        android:textSize="16sp"
+        android:layout_below="@id/challengeField"
+        android:layout_marginTop="16dp" />
+
+    <Spinner
+        android:id="@+id/userVerificationSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/userVerificationLabel"
+        android:entries="@array/user_verification_options"
+        android:layout_marginTop="8dp" />
+
+    <!-- Attestation Conveyance Spinner -->
+    <TextView
+        android:id="@+id/attestationConveyanceLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Attestation Conveyance"
+        android:textSize="16sp"
+        android:layout_below="@id/userVerificationSpinner"
+        android:layout_marginTop="16dp" />
+
+    <Spinner
+        android:id="@+id/attestationConveyanceSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/attestationConveyanceLabel"
+        android:entries="@array/attestation_conveyance_options"
+        android:layout_marginTop="8dp" />
+
+    <!-- Start Button -->
+    <Button
+        android:id="@+id/startButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Start"
+        android:layout_marginTop="24dp" />
+
+</RelativeLayout>
