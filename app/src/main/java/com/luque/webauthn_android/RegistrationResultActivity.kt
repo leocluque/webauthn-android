@@ -2,8 +2,9 @@ package com.luque.webauthn_android
 
 import android.os.Bundle
 import android.widget.Button
-import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.WAKLogger
 
@@ -40,10 +41,10 @@ class RegistrationResultActivity : AppCompatActivity() {
         }
 
         // Bind the views
-        findViewById<EditText>(R.id.raw_id_field).setText(credRaw)
-        findViewById<EditText>(R.id.cred_id_field).setText(credId)
-        findViewById<EditText>(R.id.client_data_field).setText(clientJSON)
-        findViewById<EditText>(R.id.attestation_field).setText(attestation)
+        findViewById<TextInputEditText>(R.id.raw_id_field).setText(credRaw)
+        findViewById<TextInputEditText>(R.id.cred_id_field).setText(credId)
+        findViewById<TextInputEditText>(R.id.client_data_field).setText(clientJSON)
+        findViewById<TextInputEditText>(R.id.attestation_field).setText(attestation)
 
         // Set up button click listener
         findViewById<Button>(R.id.close_button).setOnClickListener {

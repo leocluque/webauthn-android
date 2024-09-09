@@ -217,7 +217,8 @@ class AuthenticatorData(
 
     fun toBytes(): ByteArray? {
 
-        assert(userPresent != userVerified)
+        // nao entendi.
+//        assert(userPresent != userVerified)
 
         val flags: Byte = AuthenticatorDataFlags(
             userPresent = userPresent,

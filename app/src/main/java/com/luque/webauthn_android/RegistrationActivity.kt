@@ -4,7 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
+import android.widget.Spinner
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.luque.webauthn.authenticator.COSEAlgorithmIdentifier
@@ -31,13 +35,16 @@ class RegistrationActivity : AppCompatActivity() {
         private val TAG = RegistrationActivity::class.simpleName
     }
 
-    private lateinit var userIdField: TextInputLayout
-    private lateinit var userNameField: TextInputLayout
-    private lateinit var userDisplayNameField: TextInputLayout
-    private lateinit var userIconURLField: TextInputLayout
-    private lateinit var relyingPartyField: TextInputLayout
-    private lateinit var relyingPartyIconField: TextInputLayout
-    private lateinit var challengeField: TextInputLayout
+    private lateinit var userIdField: EditText
+    private lateinit var userNameField: EditText
+    private lateinit var userDisplayNameField: EditText
+    private lateinit var userIconURLField: EditText
+    private lateinit var relyingPartyField: EditText
+    private lateinit var relyingPartyIconField: EditText
+    private lateinit var challengeField: EditText
+    private lateinit var userVerificationSpinner: Spinner
+    private lateinit var attestationConveyanceSpinner: Spinner
+
 
     private val userVerificationOptions = listOf("Required", "Preferred", "Discouraged")
     private val attestationConveyanceOptions = listOf("Direct", "Indirect", "None")
@@ -47,9 +54,7 @@ class RegistrationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration)
-        title = "Registration"
 
-        // Initialize TextInputLayout fields
         userIdField = findViewById(R.id.userIdField)
         userNameField = findViewById(R.id.userNameField)
         userDisplayNameField = findViewById(R.id.userDisplayNameField)
@@ -57,16 +62,27 @@ class RegistrationActivity : AppCompatActivity() {
         relyingPartyField = findViewById(R.id.relyingPartyField)
         relyingPartyIconField = findViewById(R.id.relyingPartyIconField)
         challengeField = findViewById(R.id.challengeField)
+        userVerificationSpinner = findViewById(R.id.userVerificationSpinner)
+        attestationConveyanceSpinner = findViewById(R.id.attestationConveyanceSpinner)
+
+        val userVerificationAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, userVerificationOptions)
+        userVerificationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        userVerificationSpinner.adapter = userVerificationAdapter
+
+        val attestationConveyanceAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, attestationConveyanceOptions)
+        attestationConveyanceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        attestationConveyanceSpinner.adapter = attestationConveyanceAdapter
+        userIconURLField.setText("https://www.gravatar.com/avatar/0b63462eb18efbfb764b0c226abff4a0?s=440&d=retro")
     }
 
     private fun onStartClicked() {
-        val userId = userIdField.editText?.text.toString()
-        val username = userNameField.editText?.text.toString()
-        val userDisplayName = userDisplayNameField.editText?.text.toString()
-        val userIconURL = userIconURLField.editText?.text.toString()
-        val relyingParty = relyingPartyField.editText?.text.toString()
-        val relyingPartyICON = relyingPartyIconField.editText?.text.toString()
-        val challenge = challengeField.editText?.text.toString()
+        val userId = userIdField.text.toString()
+        val username = userNameField.text.toString()
+        val userDisplayName = userDisplayNameField.text.toString()
+        val userIconURL = userIconURLField.text.toString()
+        val relyingParty = relyingPartyField.text.toString()
+        val relyingPartyICON = relyingPartyIconField.text.toString()
+        val challenge = challengeField.text.toString()
 
         GlobalScope.launch {
             onExecute(
@@ -156,9 +172,7 @@ class RegistrationActivity : AppCompatActivity() {
     }
 
     private fun showErrorPopup(msg: String) {
-        runOnUiThread {
-            Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).show()
-        }
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 
     private fun showResultActivity(cred: MakeCredentialResponse) {
