@@ -5,12 +5,11 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.snackbar.Snackbar
+import androidx.lifecycle.lifecycleScope
 import com.luque.webauthn.authenticator.COSEAlgorithmIdentifier
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUIFactory
@@ -23,9 +22,7 @@ import com.luque.webauthn.data.UserVerificationRequirement
 import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.WAKLogger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import com.google.android.material.textfield.TextInputLayout
 
 @ExperimentalCoroutinesApi
 @ExperimentalUnsignedTypes
@@ -44,17 +41,20 @@ class RegistrationActivity : AppCompatActivity() {
     private lateinit var challengeField: EditText
     private lateinit var userVerificationSpinner: Spinner
     private lateinit var attestationConveyanceSpinner: Spinner
-
+    private var consentUI: UserConsentUI? = null
 
     private val userVerificationOptions = listOf("Required", "Preferred", "Discouraged")
     private val attestationConveyanceOptions = listOf("Direct", "Indirect", "None")
 
-    private var consentUI: UserConsentUI? = null
+    private val webAuthnClient by lazy {
+        createWebAuthnClient()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration)
 
+        // Inicializa as views usando View Binding, se disponível
         userIdField = findViewById(R.id.userIdField)
         userNameField = findViewById(R.id.userNameField)
         userDisplayNameField = findViewById(R.id.userDisplayNameField)
@@ -72,6 +72,7 @@ class RegistrationActivity : AppCompatActivity() {
         val attestationConveyanceAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, attestationConveyanceOptions)
         attestationConveyanceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         attestationConveyanceSpinner.adapter = attestationConveyanceAdapter
+
         userIconURLField.setText("https://www.gravatar.com/avatar/0b63462eb18efbfb764b0c226abff4a0?s=440&d=retro")
     }
 
@@ -84,7 +85,7 @@ class RegistrationActivity : AppCompatActivity() {
         val relyingPartyICON = relyingPartyIconField.text.toString()
         val challenge = challengeField.text.toString()
 
-        GlobalScope.launch {
+        lifecycleScope.launch {
             onExecute(
                 userId = userId,
                 username = username,
@@ -159,8 +160,6 @@ class RegistrationActivity : AppCompatActivity() {
             )
         }
 
-        val webAuthnClient = createWebAuthnClient()
-
         try {
             val cred = webAuthnClient.create(options)
             WAKLogger.d(TAG, "CHALLENGE:" + ByteArrayUtil.encodeBase64URL(options.challenge))
@@ -172,20 +171,16 @@ class RegistrationActivity : AppCompatActivity() {
     }
 
     private fun showErrorPopup(msg: String) {
-        runOnUiThread {
-            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
-        }
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 
     private fun showResultActivity(cred: MakeCredentialResponse) {
-        runOnUiThread {
-            Intent(this, RegistrationResultActivity::class.java).apply {
-                putExtra("CRED_ID", cred.id)
-                putExtra("CRED_RAW", ByteArrayUtil.toHex(cred.rawId))
-                putExtra("ATTESTATION", ByteArrayUtil.encodeBase64URL(cred.response.attestationObject))
-                putExtra("CLIENT_JSON", cred.response.clientDataJSON)
-                startActivity(this)
-            }
+        Intent(this, RegistrationResultActivity::class.java).apply {
+            putExtra("CRED_ID", cred.id)
+            putExtra("CRED_RAW", ByteArrayUtil.toHex(cred.rawId))
+            putExtra("ATTESTATION", ByteArrayUtil.encodeBase64URL(cred.response.attestationObject))
+            putExtra("CLIENT_JSON", cred.response.clientDataJSON)
+            startActivity(this)
         }
     }
 }
