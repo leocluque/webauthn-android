@@ -2,11 +2,16 @@ package com.luque.webauthn.authenticator.internal.ui
 
 import android.annotation.TargetApi
 import android.app.Activity.RESULT_OK
-import android.app.KeyguardManager
-import android.content.Context.KEYGUARD_SERVICE
+import android.content.Context
 import android.content.Intent
+import android.hardware.biometrics.BiometricPrompt
+import android.hardware.fingerprint.FingerprintManager
 import android.os.Build
+import android.os.CancellationSignal
+import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
 import com.luque.webauthn.authenticator.internal.ui.dialog.DefaultRegistrationConfirmationDialog
 import com.luque.webauthn.authenticator.internal.ui.dialog.DefaultSelectionConfirmationDialog
 import com.luque.webauthn.authenticator.internal.ui.dialog.RegistrationConfirmationDialogListener
@@ -17,23 +22,19 @@ import com.luque.webauthn.data.PublicKeyCredentialRpEntity
 import com.luque.webauthn.data.PublicKeyCredentialUserEntity
 import com.luque.webauthn.error.CancelledException
 import com.luque.webauthn.error.ErrorReason
-
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resumeWithException
-
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-
-import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
 import com.luque.webauthn.util.WAKLogger
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 @ExperimentalUnsignedTypes
 @ExperimentalCoroutinesApi
 @TargetApi(Build.VERSION_CODES.M)
 class DefaultUserConsentUI(
     private val activity: FragmentActivity
-): UserConsentUI {
+) : UserConsentUI {
 
     companion object {
         val TAG = DefaultUserConsentUI::class.simpleName
@@ -50,13 +51,9 @@ class DefaultUserConsentUI(
     private var cancelled: ErrorReason? = null
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-
         WAKLogger.d(TAG, "onActivityResult")
-
         return if (requestCode == REQUEST_CODE) {
-
             WAKLogger.d(TAG, "This is my result")
-
             keyguardResultListener?.let {
                 if (resultCode == RESULT_OK) {
                     WAKLogger.d(TAG, "OK")
@@ -66,15 +63,10 @@ class DefaultUserConsentUI(
                     it.onFailed()
                 }
             }
-
             keyguardResultListener = null
-
             true
-
         } else {
-
             false
-
         }
     }
 
@@ -112,24 +104,18 @@ class DefaultUserConsentUI(
         userEntity: PublicKeyCredentialUserEntity,
         requireUserVerification: Boolean
     ): String = suspendCoroutine { cont ->
-
         WAKLogger.d(TAG, "requestUserConsent")
-
         onStartUserInteraction()
 
         activity.runOnUiThread {
-
             WAKLogger.d(TAG, "requestUserConsent switched to UI thread")
-
-            // TODO make this configurable
             val dialog = DefaultRegistrationConfirmationDialog(config)
-
             dialog.show(activity, rpEntity, userEntity, object :
                 RegistrationConfirmationDialogListener {
 
                 override fun onCreate(keyName: String) {
                     if (requireUserVerification) {
-                        showKeyguard(cont, keyName)
+                        showBiometricPrompt(cont, keyName)
                     } else {
                         finish(cont, keyName)
                     }
@@ -138,49 +124,28 @@ class DefaultUserConsentUI(
                 override fun onCancel() {
                     fail(cont)
                 }
-
             })
-
         }
     }
 
     override suspend fun requestUserSelection(
-        sources:                 List<PublicKeyCredentialSource>,
+        sources: List<PublicKeyCredentialSource>,
         requireUserVerification: Boolean
     ): PublicKeyCredentialSource = suspendCoroutine { cont ->
-
         WAKLogger.d(TAG, "requestUserSelection")
-
         onStartUserInteraction()
 
         activity.runOnUiThread {
-
             if (sources.size == 1 && !config.alwaysShowKeySelection) {
-
                 WAKLogger.d(TAG, "found 1 source, skip selection")
-
-                executeSelectionVerificationIfNeeded(
-                    requireUserVerification = requireUserVerification,
-                    source                  = sources[0],
-                    cont                    = cont
-                )
-
+                executeSelectionVerificationIfNeeded(requireUserVerification, sources[0], cont)
             } else {
-
                 WAKLogger.d(TAG, "show selection dialog")
-
                 val dialog = DefaultSelectionConfirmationDialog(config)
-
-                dialog.show(activity, sources, object :
-                    SelectionConfirmationDialogListener {
-
+                dialog.show(activity, sources, object : SelectionConfirmationDialogListener {
                     override fun onSelect(source: PublicKeyCredentialSource) {
                         WAKLogger.d(TAG, "selected")
-                        executeSelectionVerificationIfNeeded(
-                            requireUserVerification = requireUserVerification,
-                            source                  = source,
-                            cont                    = cont
-                        )
+                        executeSelectionVerificationIfNeeded(requireUserVerification, source, cont)
                     }
 
                     override fun onCancel() {
@@ -188,7 +153,6 @@ class DefaultUserConsentUI(
                         fail(cont)
                     }
                 })
-
             }
         }
     }
@@ -196,59 +160,94 @@ class DefaultUserConsentUI(
     private fun executeSelectionVerificationIfNeeded(
         requireUserVerification: Boolean,
         source: PublicKeyCredentialSource,
-        cont:                    Continuation<PublicKeyCredentialSource>
+        cont: Continuation<PublicKeyCredentialSource>
     ) {
         if (requireUserVerification) {
-            showKeyguard(cont, source)
+            showBiometricPrompt(cont, source)
         } else {
             finish(cont, source)
         }
     }
 
-    private fun <T> showKeyguard(cont: Continuation<T>, consentResult: T) {
-
-        WAKLogger.d(TAG, "showKeyguard")
-
-        val keyguardManager =
-            activity.getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-
-        if (!keyguardManager.isKeyguardSecure) {
-            WAKLogger.d(TAG, "keyguard is not secure")
-
-            showErrorDialog(cont, config.messageKeyguardNotSetError)
-
+    private fun <T> showBiometricPrompt(cont: Continuation<T>, consentResult: T) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            showBiometricPromptApi29AndAbove(cont, consentResult)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            showFingerprintPromptApi23To27(cont, consentResult)
         } else {
-            WAKLogger.d(TAG, "keyguard is secure")
-
-            keyguardResultListener = object : KeyguardResultListener {
-
-                override fun onAuthenticated() {
-                    WAKLogger.d(TAG, "keyguard authenticated")
-                    finish(cont, consentResult)
-                }
-
-                override fun onFailed() {
-                    WAKLogger.d(TAG, "failed keyguard authentication")
-                    fail(cont)
-                }
-            }
-
-            val intent =
-                keyguardManager.createConfirmDeviceCredentialIntent(
-                    config.messageKeyguardTitle, config.messageKeyguardDescription)
-            activity.startActivityForResult(intent, REQUEST_CODE)
+            fail(cont) // Fail if the device is running an unsupported version
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun <T> showBiometricPromptApi29AndAbove(cont: Continuation<T>, consentResult: T) {
+        val builder = BiometricPrompt.Builder(activity)
+            .setTitle("Autenticação Biométrica")
+            .setSubtitle("Use sua impressão digital para autenticar")
+            .setDescription("Coloque o dedo no sensor de impressão digital")
+
+        if (config.useOnlyFingerprint) {
+            // Apenas impressões digitais permitidas, então não adicionamos o botão negativo
+            builder.setDeviceCredentialAllowed(false)
+            builder.setNegativeButton("Cancelar", ContextCompat.getMainExecutor(activity)) { _, _ ->
+                fail(cont)
+            }
+        } else {
+            // Permite PIN, senha ou impressões digitais
+            builder.setDeviceCredentialAllowed(true)
+
+        }
+
+        val biometricPrompt = builder.build()
+
+        biometricPrompt.authenticate(
+            CancellationSignal(),
+            ContextCompat.getMainExecutor(activity),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    finish(cont, consentResult)
+                }
+
+                override fun onAuthenticationFailed() {
+                    showErrorDialog(cont, "Falha na autenticação biométrica.")
+                }
+            }
+        )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun <T> showFingerprintPromptApi23To27(cont: Continuation<T>, consentResult: T) {
+        val fingerprintManager = activity.getSystemService(Context.FINGERPRINT_SERVICE) as FingerprintManager
+
+        if (!fingerprintManager.isHardwareDetected || !fingerprintManager.hasEnrolledFingerprints()) {
+            showErrorDialog(cont, "Fingerprint authentication is not set up.")
+            return
+        }
+
+        val cancellationSignal = CancellationSignal()
+        fingerprintManager.authenticate(
+            null,
+            cancellationSignal,
+            0,
+            object : FingerprintManager.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
+                    finish(cont, consentResult)
+                }
+
+                override fun onAuthenticationFailed() {
+                    showErrorDialog(cont, "Falha na autenticação com impressão digital.")
+                }
+            },
+            null
+        )
+    }
+
     private fun <T> showErrorDialog(cont: Continuation<T>, reason: String) {
-
         val dialog = VerificationErrorDialog(config)
-
-        dialog.show(activity, reason, object: VerificationErrorDialogListener {
+        dialog.show(activity, reason, object : VerificationErrorDialogListener {
             override fun onComplete() {
                 fail(cont)
             }
         })
-
     }
 }

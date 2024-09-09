@@ -172,7 +172,9 @@ class RegistrationActivity : AppCompatActivity() {
     }
 
     private fun showErrorPopup(msg: String) {
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        runOnUiThread {
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun showResultActivity(cred: MakeCredentialResponse) {
