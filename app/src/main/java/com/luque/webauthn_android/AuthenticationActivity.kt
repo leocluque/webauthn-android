@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUIFactory
 import com.luque.webauthn.client.WebAuthnClient
@@ -41,7 +42,7 @@ class AuthenticationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         WAKLogger.d(TAG, "onCreate")
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.auth_activity) // Use o XML de layout
+        setContentView(R.layout.auth_activity)
 
         title = "AUTHENTICATION"
 
@@ -55,6 +56,9 @@ class AuthenticationActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, userVerificationOptions)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         userVerificationSpinner.adapter = adapter
+
+        // Inicializa o WebAuthnClient
+        webAuthnClient = createWebAuthnClient()
     }
 
     private fun onStartClicked() {
@@ -69,7 +73,7 @@ class AuthenticationActivity : AppCompatActivity() {
             else -> UserVerificationRequirement.Preferred
         }
 
-        GlobalScope.launch {
+        lifecycleScope.launch {
             onExecute(
                 relyingParty = relyingParty,
                 challenge = challenge,
@@ -136,19 +140,16 @@ class AuthenticationActivity : AppCompatActivity() {
             }
         }
 
-        webAuthnClient = createWebAuthnClient()
-
         try {
-            val cred = webAuthnClient!!.get(options)
+            val cred = webAuthnClient?.get(options)
             WAKLogger.d(TAG, "CHALLENGE:" + ByteArrayUtil.encodeBase64URL(options.challenge))
-            showResultActivity(cred)
+            cred?.let { showResultActivity(it) } ?: kotlin.run { showErrorPopup("cred null") }
         } catch (e: Exception) {
             WAKLogger.w(TAG, "failed to get")
             showErrorPopup(e.toString())
-        } finally {
-            consentUI = null
         }
     }
+
 
     private fun showErrorPopup(msg: String) {
         runOnUiThread {
