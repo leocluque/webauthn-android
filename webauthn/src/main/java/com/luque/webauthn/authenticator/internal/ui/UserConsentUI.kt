@@ -6,6 +6,7 @@ import com.luque.webauthn.data.PublicKeyCredentialUserEntity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
 import com.luque.webauthn.error.ErrorReason
+import kotlin.coroutines.Continuation
 
 interface KeyguardResultListener {
     fun onAuthenticated()

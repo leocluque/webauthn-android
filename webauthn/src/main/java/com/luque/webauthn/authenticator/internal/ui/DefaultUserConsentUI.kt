@@ -2,6 +2,7 @@ package com.luque.webauthn.authenticator.internal.ui
 
 import android.annotation.TargetApi
 import android.app.Activity.RESULT_OK
+import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.hardware.biometrics.BiometricPrompt
@@ -66,7 +67,19 @@ class DefaultUserConsentUI(
             keyguardResultListener = null
             true
         } else {
-            false
+            if (requestCode == 1408) {
+                if (resultCode == RESULT_OK) {
+                    CancellationSignal()
+                    // Autenticação foi bem-sucedida
+//                    finish(cont, consentResult)
+                } else {
+                    // Falha na autenticação
+//                    showErrorDialog(cont, "Falha na autenticação com bloqueio de tela.")
+                }
+                true
+            } else {
+                false
+            }
         }
     }
 
@@ -217,29 +230,49 @@ class DefaultUserConsentUI(
 
     @RequiresApi(Build.VERSION_CODES.P)
     private fun <T> showFingerprintPromptApi23To27(cont: Continuation<T>, consentResult: T) {
-        val fingerprintManager = activity.getSystemService(Context.FINGERPRINT_SERVICE) as FingerprintManager
 
-        if (!fingerprintManager.isHardwareDetected || !fingerprintManager.hasEnrolledFingerprints()) {
-            showErrorDialog(cont, "Fingerprint authentication is not set up.")
-            return
+        try {
+            val fingerprintManager = activity.getSystemService(Context.FINGERPRINT_SERVICE) as FingerprintManager
+            if (!fingerprintManager.isHardwareDetected || !fingerprintManager.hasEnrolledFingerprints()) {
+                showErrorDialog(cont, "Fingerprint authentication is not set up.")
+                return
+            }
+            val cancellationSignal = CancellationSignal()
+            fingerprintManager.authenticate(
+                null,
+                cancellationSignal,
+                0,
+                object : FingerprintManager.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
+                        finish(cont, consentResult)
+                    }
+
+                    override fun onAuthenticationFailed() {
+                        showErrorDialog(cont, "Falha na autenticação com impressão digital.")
+                    }
+                },
+                null
+            )
+        } catch (e: Exception) {
+            val keyguardManager = activity.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            if (keyguardManager.isKeyguardSecure) {
+                val intent = keyguardManager.createConfirmDeviceCredentialIntent(
+                    "Autenticação necessária",
+                    "Autentique-se com seu PIN, padrão ou senha."
+                )
+
+                if (intent != null) {
+                    activity.startActivityForResult(intent, 1408)
+                } else {
+                    // Caso o intent não possa ser criado (muito raro)
+                    showErrorDialog(cont, "Não foi possível solicitar autenticação.")
+                }
+            } else {
+                // Bloqueio de tela não está configurado
+                showErrorDialog(cont, "Nenhum método de bloqueio de tela configurado.")
+            }
         }
 
-        val cancellationSignal = CancellationSignal()
-        fingerprintManager.authenticate(
-            null,
-            cancellationSignal,
-            0,
-            object : FingerprintManager.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
-                    finish(cont, consentResult)
-                }
-
-                override fun onAuthenticationFailed() {
-                    showErrorDialog(cont, "Falha na autenticação com impressão digital.")
-                }
-            },
-            null
-        )
     }
 
     private fun <T> showErrorDialog(cont: Continuation<T>, reason: String) {

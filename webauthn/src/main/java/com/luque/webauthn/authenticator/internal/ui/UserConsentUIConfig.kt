@@ -23,5 +23,5 @@ class UserConsentUIConfig {
 
     var errorDialogTitle = "Verification Failed"
     var errorDialogOKButtonTet = "OK"
-    var useOnlyFingerprint = true
+    var useOnlyFingerprint = false
 }
