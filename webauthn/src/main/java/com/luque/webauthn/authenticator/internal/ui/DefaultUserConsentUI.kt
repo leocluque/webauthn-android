@@ -45,6 +45,7 @@ class DefaultUserConsentUI(
     var keyguardResultListener: KeyguardResultListener? = null
 
     override val config = UserConsentUIConfig()
+    var teste : (() -> Unit)? = null
 
     override var isOpen: Boolean = false
         private set
@@ -71,7 +72,7 @@ class DefaultUserConsentUI(
                 if (resultCode == RESULT_OK) {
                     CancellationSignal()
                     // Autenticação foi bem-sucedida
-//                    finish(cont, consentResult)
+                    teste?.invoke()
                 } else {
                     // Falha na autenticação
 //                    showErrorDialog(cont, "Falha na autenticação com bloqueio de tela.")
@@ -263,6 +264,9 @@ class DefaultUserConsentUI(
 
                 if (intent != null) {
                     activity.startActivityForResult(intent, 1408)
+                     teste = {
+                         finish(cont, consentResult)
+                     }
                 } else {
                     // Caso o intent não possa ser criado (muito raro)
                     showErrorDialog(cont, "Não foi possível solicitar autenticação.")
