@@ -1,6 +1,6 @@
 package com.luque.webauthn.authenticator.internal.key
 
-import com.luque.webauthn.authenticator.AttestationObject
+import com.luque.webauthn.authenticator.attestation.AttestationObject
 import com.luque.webauthn.authenticator.AuthenticatorData
 import com.luque.webauthn.authenticator.COSEKey
 
@@ -22,7 +22,7 @@ object AttestationFormatType {
     const val Packed     = "packed"
 }
 
-@ExperimentalUnsignedTypes
+
 interface KeySupport {
     val alg: Int
     fun createKeyPair(alias: String, clientDataHash: ByteArray): COSEKey?

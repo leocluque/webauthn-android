@@ -6,7 +6,6 @@ import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.CBORReader
 import com.luque.webauthn.util.CBORWriter
 
-@ExperimentalUnsignedTypes
 class PublicKeyCredentialSource(
     var signCount:  UInt,
     val id:         ByteArray,

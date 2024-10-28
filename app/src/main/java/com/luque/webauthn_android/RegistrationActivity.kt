@@ -13,7 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.luque.webauthn.authenticator.COSEAlgorithmIdentifier
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUIFactory
-import com.luque.webauthn.client.WebAuthnClient
+import com.luque.webauthn.client.WebAuthClient
 import com.luque.webauthn.data.AttestationConveyancePreference
 import com.luque.webauthn.data.AuthenticatorSelectionCriteria
 import com.luque.webauthn.data.MakeCredentialResponse
@@ -21,11 +21,10 @@ import com.luque.webauthn.data.PublicKeyCredentialCreationOptions
 import com.luque.webauthn.data.UserVerificationRequirement
 import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.WAKLogger
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
-@ExperimentalCoroutinesApi
-@ExperimentalUnsignedTypes
+
+
 class RegistrationActivity : AppCompatActivity() {
 
     companion object {
@@ -100,9 +99,9 @@ class RegistrationActivity : AppCompatActivity() {
         }
     }
 
-    private fun createWebAuthnClient(): WebAuthnClient {
+    private fun createWebAuthnClient(): WebAuthClient {
         consentUI = UserConsentUIFactory.create(this)
-        return WebAuthnClient.create(
+        return WebAuthClient.create(
             activity = this,
             origin = "https://example.org",
             ui = consentUI!!

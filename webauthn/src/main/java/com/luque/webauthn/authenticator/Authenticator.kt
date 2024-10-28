@@ -1,5 +1,6 @@
 package com.luque.webauthn.authenticator
 
+import com.luque.webauthn.authenticator.attestation.AttestationObject
 import com.luque.webauthn.data.AuthenticatorAttachment
 import com.luque.webauthn.data.AuthenticatorTransport
 import com.luque.webauthn.data.PublicKeyCredentialDescriptor
@@ -15,7 +16,6 @@ class AuthenticatorAssertionResult(
     var authenticatorData: ByteArray
 )
 
-@ExperimentalUnsignedTypes
 interface MakeCredentialSessionListener {
     fun onAvailable(session: MakeCredentialSession) {}
     fun onUnavailable(session: MakeCredentialSession) {}
@@ -23,7 +23,6 @@ interface MakeCredentialSessionListener {
     fun onCredentialCreated(session: MakeCredentialSession, attestationObject: AttestationObject) {}
 }
 
-@ExperimentalUnsignedTypes
 interface GetAssertionSessionListener {
     fun onAvailable(session: GetAssertionSession) {}
     fun onUnavailable(session: GetAssertionSession) {}
@@ -31,7 +30,6 @@ interface GetAssertionSessionListener {
     fun onCredentialDiscovered(session: GetAssertionSession, assertion: AuthenticatorAssertionResult) {}
 }
 
-@ExperimentalUnsignedTypes
 interface GetAssertionSession {
 
     val attachment: AuthenticatorAttachment
@@ -51,7 +49,6 @@ interface GetAssertionSession {
     fun cancel(reason: ErrorReason)
 }
 
-@ExperimentalUnsignedTypes
 interface MakeCredentialSession {
 
     val attachment: AuthenticatorAttachment
@@ -74,7 +71,6 @@ interface MakeCredentialSession {
     fun cancel(reason: ErrorReason)
 }
 
-@ExperimentalUnsignedTypes
 interface Authenticator {
 
     val attachment: AuthenticatorAttachment

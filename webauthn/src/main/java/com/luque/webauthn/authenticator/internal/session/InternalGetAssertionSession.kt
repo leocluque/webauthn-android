@@ -22,8 +22,8 @@ import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
 
 
-@ExperimentalCoroutinesApi
-@ExperimentalUnsignedTypes
+
+
 class InternalGetAssertionSession(
     private val setting: InternalAuthenticatorSetting,
     private val ui: UserConsentUI,

@@ -6,7 +6,7 @@ import android.os.Build
 import com.luque.webauthn.authenticator.COSEAlgorithmIdentifier
 import com.luque.webauthn.util.WAKLogger
 
-@ExperimentalUnsignedTypes
+
 class KeySupportChooser(private val context: Context) {
 
     companion object {

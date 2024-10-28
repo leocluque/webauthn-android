@@ -11,7 +11,7 @@ import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
 import java.util.*
 import android.security.keystore.KeyInfo
-import com.luque.webauthn.authenticator.AttestationObject
+import com.luque.webauthn.authenticator.attestation.AttestationObject
 import com.luque.webauthn.authenticator.AuthenticatorData
 import com.luque.webauthn.authenticator.COSEKey
 import com.luque.webauthn.authenticator.COSEKeyCurveType
@@ -19,8 +19,7 @@ import com.luque.webauthn.authenticator.COSEKeyEC2
 import com.luque.webauthn.error.InvalidStateException
 import java.security.cert.X509Certificate
 
-@TargetApi(Build.VERSION_CODES.M)
-@ExperimentalUnsignedTypes
+
 class DefaultKeySupport(
     override val alg: Int
 ): KeySupport {

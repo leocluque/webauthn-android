@@ -66,8 +66,8 @@ O WebAuthnKit usa recursos experimentais do Kotlin. Portanto, adicione algumas a
 Claro, `androidx.appcompat.app.AppCompatActivity` também está bem.
 
 ```kotlin
-@ExperimentalCoroutinesApi
-@ExperimentalUnsignedTypes
+
+
 class AuthenticationActivity : AppCompatActivity() {
   //...
 }

@@ -1,7 +1,6 @@
 package com.luque.webauthn_android
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -13,19 +12,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUIFactory
-import com.luque.webauthn.client.WebAuthnClient
+import com.luque.webauthn.client.WebAuthClient
 import com.luque.webauthn.data.AuthenticatorTransport
 import com.luque.webauthn.data.GetAssertionResponse
 import com.luque.webauthn.data.PublicKeyCredentialRequestOptions
 import com.luque.webauthn.data.UserVerificationRequirement
 import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.WAKLogger
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-@ExperimentalCoroutinesApi
-@ExperimentalUnsignedTypes
+
+
 class AuthenticationActivity : AppCompatActivity() {
 
     companion object {
@@ -83,9 +80,9 @@ class AuthenticationActivity : AppCompatActivity() {
         }
     }
 
-    private fun createWebAuthnClient(): WebAuthnClient {
+    private fun createWebAuthnClient(): WebAuthClient {
         consentUI = UserConsentUIFactory.create(this)
-        return WebAuthnClient.create(
+        return WebAuthClient.create(
             activity = this,
             origin = "https://example.org",
             ui = consentUI!!
@@ -123,7 +120,7 @@ class AuthenticationActivity : AppCompatActivity() {
     }
 
     private var consentUI: UserConsentUI? = null
-    private var webAuthnClient: WebAuthnClient? = null
+    private var webAuthnClient: WebAuthClient? = null
 
     private suspend fun onExecute(relyingParty: String, challenge: String,
                                   credId: String, userVerification: UserVerificationRequirement) {

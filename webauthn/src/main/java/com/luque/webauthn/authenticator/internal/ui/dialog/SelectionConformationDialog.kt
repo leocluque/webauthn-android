@@ -15,13 +15,13 @@ import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUIConfig
 import com.luque.webauthn.util.WAKLogger
 
-@ExperimentalUnsignedTypes
+
 interface SelectionConfirmationDialogListener {
     fun onSelect(source: PublicKeyCredentialSource)
     fun onCancel()
 }
 
-@ExperimentalUnsignedTypes
+
 interface SelectionConfirmationDialog {
     fun show(
         activity: FragmentActivity,
@@ -30,7 +30,7 @@ interface SelectionConfirmationDialog {
     )
 }
 
-@ExperimentalUnsignedTypes
+
 class DefaultSelectionConfirmationDialog(
     private val config: UserConsentUIConfig
 ): SelectionConfirmationDialog {

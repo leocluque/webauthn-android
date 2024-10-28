@@ -7,8 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.luque.webauthn.util.WAKLogger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@ExperimentalCoroutinesApi
-@ExperimentalUnsignedTypes
+
+
 class MainActivity : AppCompatActivity() {
 
     companion object {

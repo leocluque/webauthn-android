@@ -30,8 +30,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-@ExperimentalUnsignedTypes
-@ExperimentalCoroutinesApi
+
+
 @TargetApi(Build.VERSION_CODES.M)
 class DefaultUserConsentUI(
     private val activity: FragmentActivity

@@ -8,7 +8,6 @@ import kotlin.experimental.or
 
 // TODO better performance
 
-@ExperimentalUnsignedTypes
 object CBORBits {
 
     val falseBits: Byte
@@ -59,7 +58,6 @@ object CBORBits {
 }
 
 
-@ExperimentalUnsignedTypes
 class CBORReader(private val bytes: ByteArray) {
 
     private val size = bytes.size
@@ -406,8 +404,7 @@ class CBORReader(private val bytes: ByteArray) {
     }
 }
 
-@ExperimentalUnsignedTypes
-class CBORWriter() {
+class CBORWriter {
 
     private var result = ByteArrayOutputStream()
 

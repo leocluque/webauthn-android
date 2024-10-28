@@ -40,11 +40,6 @@
                 android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <activity
-                android:name="com.luque.webauthn_android.BleAuthenticatorAuthenticationActivity"
-                android:label="@string/title_activity_authentication"
-                android:theme="@style/AppTheme">
-        </activity>
-        <activity
                 android:name="com.luque.webauthn_android.RegistrationActivity"
                 android:label="@string/title_activity_registration"
                 android:theme="@style/AppTheme">
@@ -53,11 +48,6 @@
                 android:name="com.luque.webauthn_android.RegistrationResultActivity"
                 android:label="@string/title_activity_registration"
                 android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
-                android:name="com.luque.webauthn_android.BleAuthenticatorRegistrationActivity"
-                android:label="@string/title_activity_registration"
-                android:theme="@style/AppTheme">
         </activity>
         <activity android:name="com.luque.webauthn_android.MainActivity"
             android:exported="true">

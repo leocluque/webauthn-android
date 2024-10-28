@@ -6,8 +6,6 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
-
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import com.luque.webauthn.authenticator.AuthenticatorAssertionResult
@@ -25,8 +23,6 @@ import com.luque.webauthn.error.ErrorReason
 import com.luque.webauthn.util.WAKLogger
 import com.luque.webauthn.util.ByteArrayUtil
 
-@ExperimentalCoroutinesApi
-@ExperimentalUnsignedTypes
 class GetOperation(
     private val options: PublicKeyCredentialRequestOptions,
     private val rpId:           String,

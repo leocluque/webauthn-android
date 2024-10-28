@@ -2,7 +2,7 @@ package com.luque.webauthn.authenticator.internal.key
 
 import android.content.Context
 import android.security.KeyPairGeneratorSpec
-import com.luque.webauthn.authenticator.AttestationObject
+import com.luque.webauthn.authenticator.attestation.AttestationObject
 import com.luque.webauthn.authenticator.AuthenticatorData
 import com.luque.webauthn.authenticator.COSEKey
 import com.luque.webauthn.authenticator.COSEKeyCurveType
@@ -17,7 +17,7 @@ import java.security.spec.ECGenParameterSpec
 import java.util.*
 import javax.security.auth.x500.X500Principal
 
-@ExperimentalUnsignedTypes
+
 class LegacyKeySupport(
     private val context: Context,
     override val alg: Int

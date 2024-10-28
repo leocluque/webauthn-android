@@ -13,7 +13,7 @@ import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
 import com.luque.webauthn.data.AuthenticatorAttachment
 import com.luque.webauthn.data.AuthenticatorTransport
 
-@ExperimentalUnsignedTypes
+
 class InternalAuthenticatorSetting {
     val attachment = AuthenticatorAttachment.Platform
     val transport  = AuthenticatorTransport.Internal
@@ -21,8 +21,8 @@ class InternalAuthenticatorSetting {
     var allowUserVerification = true
 }
 
-@ExperimentalCoroutinesApi
-@ExperimentalUnsignedTypes
+
+
 class InternalAuthenticator(
     private val activity:          FragmentActivity,
     private val ui: UserConsentUI,

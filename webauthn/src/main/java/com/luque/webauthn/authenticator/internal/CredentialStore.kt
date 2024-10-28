@@ -9,7 +9,7 @@ import com.luque.webauthn.util.WAKLogger
 import com.luque.webauthn.util.ByteArrayUtil
 import java.lang.Exception
 
-@ExperimentalUnsignedTypes
+
 class CredentialStore(context: Context) {
 
     companion object {
@@ -72,7 +72,7 @@ class CredentialStore(context: Context) {
     }
 }
 
-@ExperimentalUnsignedTypes
+
 class CredentialStoreDatabaseHelper(
     context: Context,
     name:    String,

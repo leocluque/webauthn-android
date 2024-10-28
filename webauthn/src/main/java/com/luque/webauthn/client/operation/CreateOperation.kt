@@ -1,21 +1,9 @@
 package com.luque.webauthn.client.operation
 
-import com.luque.webauthn.data.AttestationConveyancePreference
-import com.luque.webauthn.error.BadOperationException
-import java.util.*
-
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-
-import com.luque.webauthn.error.ErrorReason
-import com.luque.webauthn.authenticator.AttestationObject
+import com.luque.webauthn.authenticator.attestation.AttestationObject
 import com.luque.webauthn.authenticator.MakeCredentialSession
 import com.luque.webauthn.authenticator.MakeCredentialSessionListener
+import com.luque.webauthn.data.AttestationConveyancePreference
 import com.luque.webauthn.data.AuthenticatorAttestationResponse
 import com.luque.webauthn.data.AuthenticatorTransport
 import com.luque.webauthn.data.CollectedClientData
@@ -24,11 +12,21 @@ import com.luque.webauthn.data.PublicKeyCredential
 import com.luque.webauthn.data.PublicKeyCredentialCreationOptions
 import com.luque.webauthn.data.PublicKeyCredentialRpEntity
 import com.luque.webauthn.data.UserVerificationRequirement
-import com.luque.webauthn.util.WAKLogger
+import com.luque.webauthn.error.BadOperationException
+import com.luque.webauthn.error.ErrorReason
 import com.luque.webauthn.util.ByteArrayUtil
+import com.luque.webauthn.util.WAKLogger
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.util.Timer
+import java.util.TimerTask
+import java.util.UUID
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
-@ExperimentalCoroutinesApi
-@ExperimentalUnsignedTypes
+
 class CreateOperation(
     private val options: PublicKeyCredentialCreationOptions,
     private val rpId:           String,

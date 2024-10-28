@@ -1,7 +1,5 @@
 package com.luque.webauthn.data
 
-import com.luque.webauthn.data.AttestationConveyancePreference
-
 class PublicKeyCredentialCreationOptions(
     var rp: PublicKeyCredentialRpEntity = PublicKeyCredentialRpEntity(),
     var user: PublicKeyCredentialUserEntity = PublicKeyCredentialUserEntity(),

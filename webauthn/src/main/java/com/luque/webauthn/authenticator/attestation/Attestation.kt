@@ -1,10 +1,10 @@
-package com.luque.webauthn.authenticator
+package com.luque.webauthn.authenticator.attestation
 
+import com.luque.webauthn.authenticator.AuthenticatorData
 import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.CBORWriter
 import com.luque.webauthn.util.WAKLogger
 
-@ExperimentalUnsignedTypes
 class AttestationObject(
     val fmt:      String,
     val authData: AuthenticatorData,

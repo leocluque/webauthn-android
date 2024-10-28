@@ -49,7 +49,7 @@ interface COSEKey {
     fun toBytes(): ByteArray?
 }
 
-@ExperimentalUnsignedTypes
+
 class COSEKeyEC2(
     val alg: Int,
     val crv: Int,
@@ -87,7 +87,6 @@ class COSEKeyEC2(
 
 }
 
-@ExperimentalUnsignedTypes
 class COSEKeyRSA(
     val alg: Int,
     val n: ByteArray,
@@ -119,7 +118,6 @@ class COSEKeyRSA(
 
 }
 
-@ExperimentalUnsignedTypes
 class AttestedCredentialData(
     val aaguid: ByteArray,
     val credentialId: ByteArray,
@@ -149,7 +147,6 @@ class AttestedCredentialData(
     }
 }
 
-@ExperimentalUnsignedTypes
 class AuthenticatorDataFlags(
     private val userPresent: Boolean,
     private val userVerified: Boolean,
@@ -201,7 +198,6 @@ class AuthenticatorDataFlags(
     }
 }
 
-@ExperimentalUnsignedTypes
 class AuthenticatorData(
     private val rpIdHash: ByteArray,
     private val userPresent: Boolean,
