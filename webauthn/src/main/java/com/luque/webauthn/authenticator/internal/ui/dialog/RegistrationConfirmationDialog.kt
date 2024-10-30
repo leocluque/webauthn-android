@@ -17,11 +17,11 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.luque.webauthn.R
+import com.luque.webauthn.authenticator.internal.ui.UserConsentUIConfig
 import com.luque.webauthn.data.PublicKeyCredentialRpEntity
 import com.luque.webauthn.data.PublicKeyCredentialUserEntity
 import com.luque.webauthn.util.WAKLogger
-import com.luque.webauthn.authenticator.internal.ui.UserConsentUIConfig
-import java.util.*
+import java.util.Calendar
 
 interface RegistrationConfirmationDialogListener {
     fun onCreate(keyName: String)
@@ -30,26 +30,26 @@ interface RegistrationConfirmationDialogListener {
 
 interface RegistrationConfirmationDialog {
     fun show(
-        activity:   FragmentActivity,
+        activity: FragmentActivity,
         rpEntity: PublicKeyCredentialRpEntity,
         userEntity: PublicKeyCredentialUserEntity,
-        listener: RegistrationConfirmationDialogListener
+        listener: RegistrationConfirmationDialogListener,
     )
 }
 
 class DefaultRegistrationConfirmationDialog(
-    private val config: UserConsentUIConfig
-): RegistrationConfirmationDialog {
+    private val config: UserConsentUIConfig,
+) : RegistrationConfirmationDialog {
 
     companion object {
         val TAG = DefaultRegistrationConfirmationDialog::class.simpleName
     }
 
     override fun show(
-        activity:   FragmentActivity,
-        rpEntity:   PublicKeyCredentialRpEntity,
+        activity: FragmentActivity,
+        rpEntity: PublicKeyCredentialRpEntity,
         userEntity: PublicKeyCredentialUserEntity,
-        listener: RegistrationConfirmationDialogListener
+        listener: RegistrationConfirmationDialogListener,
     ) {
 
         WAKLogger.d(TAG, "show")
@@ -86,7 +86,7 @@ class DefaultRegistrationConfirmationDialog(
 
             val radius = activity.resources.getDimensionPixelSize(R.dimen.user_icon_radius)
 
-            val option= RequestOptions().let {
+            val option = RequestOptions().let {
 
                 it.fitCenter()
                 it.transform(MultiTransformation(CenterCrop(), RoundedCorners(radius)))
@@ -105,7 +105,7 @@ class DefaultRegistrationConfirmationDialog(
 
             val radius = activity.resources.getDimensionPixelSize(R.dimen.rp_icon_radius)
 
-            val option= RequestOptions().let {
+            val option = RequestOptions().let {
 
                 it.fitCenter()
                 it.transform(MultiTransformation(CenterCrop(), RoundedCorners(radius)))
@@ -120,25 +120,27 @@ class DefaultRegistrationConfirmationDialog(
         dialog.findViewById<Button>(R.id.webauthn_registration_confirmation_cancel_button).text =
             config.registrationDialogCancelButtonText
 
-        dialog.findViewById<Button>(R.id.webauthn_registration_confirmation_cancel_button).setOnClickListener {
-            WAKLogger.d(TAG, "cancel clicked")
-            dialog.dismiss()
-            listener.onCancel()
-        }
+        dialog.findViewById<Button>(R.id.webauthn_registration_confirmation_cancel_button)
+            .setOnClickListener {
+                WAKLogger.d(TAG, "cancel clicked")
+                dialog.dismiss()
+                listener.onCancel()
+            }
 
         dialog.findViewById<Button>(R.id.webauthn_registration_confirmation_ok_button).text =
             config.registrationDialogCreateButtonText
 
-        dialog.findViewById<Button>(R.id.webauthn_registration_confirmation_ok_button).setOnClickListener {
-            WAKLogger.d(TAG, "create clicked")
-            val keyName = keyNameField.text.toString()
-            dialog.dismiss()
-            if (keyName.isEmpty()) {
-                listener.onCreate(getDefaultKeyName(userEntity.name))
-            } else {
-                listener.onCreate(keyName)
+        dialog.findViewById<Button>(R.id.webauthn_registration_confirmation_ok_button)
+            .setOnClickListener {
+                WAKLogger.d(TAG, "create clicked")
+                val keyName = keyNameField.text.toString()
+                dialog.dismiss()
+                if (keyName.isEmpty()) {
+                    listener.onCreate(getDefaultKeyName(userEntity.name))
+                } else {
+                    listener.onCreate(keyName)
+                }
             }
-        }
 
         dialog.show()
     }

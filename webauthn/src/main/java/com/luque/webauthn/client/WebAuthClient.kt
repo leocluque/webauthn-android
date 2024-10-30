@@ -1,8 +1,8 @@
 package com.luque.webauthn.client
 
 import androidx.fragment.app.FragmentActivity
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.luque.webauthn.authenticator.Authenticator
 import com.luque.webauthn.authenticator.internal.InternalAuthenticator
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
@@ -17,21 +17,29 @@ import com.luque.webauthn.data.MakeCredentialResponse
 import com.luque.webauthn.data.PublicKeyCredentialCreationOptions
 import com.luque.webauthn.data.PublicKeyCredentialRequestOptions
 import com.luque.webauthn.util.ByteArrayUtil
+import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.ConcurrentHashMap
 
 
 class WebAuthClient(
     val authenticator: Authenticator,
-    private val origin: String
+    private val origin: String,
 ) : OperationListener {
 
     companion object {
         val TAG = WebAuthClient::class.simpleName
-        private val objectMapper: ObjectMapper = ObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        private val gson: Gson = GsonBuilder()
+            .serializeNulls() // Opcional: Inclui campos nulos, remova se quiser ignorá-los.
+            .create()
 
-        fun create(activity: FragmentActivity, origin: String, ui: UserConsentUI): WebAuthClient {
-            val authenticator = InternalAuthenticator(activity = activity, ui = ui)
+        fun create(
+            activity: FragmentActivity,
+            origin: String,
+            ui: UserConsentUI,
+            coroutineScope: CoroutineScope,
+        ): WebAuthClient {
+            val authenticator =
+                InternalAuthenticator(activity = activity, ui = ui, coroutineScope = coroutineScope)
             return WebAuthClient(origin = origin, authenticator = authenticator)
         }
     }
@@ -43,11 +51,11 @@ class WebAuthClient(
     private val getOperations = ConcurrentHashMap<String, GetOperation>()
     private val createOperations = ConcurrentHashMap<String, CreateOperation>()
 
-    suspend fun get(options: PublicKeyCredentialRequestOptions): GetAssertionResponse {
+    suspend fun get(options: PublicKeyCredentialRequestOptions, coroutineScope: CoroutineScope): GetAssertionResponse {
         val op = newGetOperation(options)
         op.listener = this
         getOperations[op.opId] = op
-        return op.start()
+        return op.start(coroutineScope)
     }
 
     private fun newGetOperation(options: PublicKeyCredentialRequestOptions): GetOperation {
@@ -72,11 +80,11 @@ class WebAuthClient(
         )
     }
 
-    suspend fun create(options: PublicKeyCredentialCreationOptions): MakeCredentialResponse {
+    suspend fun create(options: PublicKeyCredentialCreationOptions, coroutineScope: CoroutineScope): MakeCredentialResponse {
         val op = newCreateOperation(options)
         op.listener = this
         createOperations[op.opId] = op
-        return op.start()
+        return op.start(coroutineScope)
     }
 
     private fun newCreateOperation(options: PublicKeyCredentialCreationOptions): CreateOperation {
@@ -101,9 +109,9 @@ class WebAuthClient(
         )
     }
 
-    fun cancel() {
-        getOperations.values.forEach { it.cancel() }
-        createOperations.values.forEach { it.cancel() }
+    fun cancel(coroutineScope: CoroutineScope) {
+        getOperations.values.forEach { it.cancel(coroutineScope = coroutineScope) }
+        createOperations.values.forEach { it.cancel(coroutineScope = coroutineScope) }
         getOperations.clear()
         createOperations.clear()
     }
@@ -112,15 +120,19 @@ class WebAuthClient(
         return timeout?.coerceIn(minTimeout, maxTimeout) ?: defaultTimeout
     }
 
-    private fun generateClientData(type: CollectedClientDataType, challenge: String): Triple<CollectedClientData, String, ByteArray> {
-        val data = CollectedClientData(type = type.toString(), challenge = challenge, origin = origin)
+    private fun generateClientData(
+        type: CollectedClientDataType,
+        challenge: String,
+    ): Triple<CollectedClientData, String, ByteArray> {
+        val data =
+            CollectedClientData(type = type.toString(), challenge = challenge, origin = origin)
         val json = encodeJSON(data)
         val hash = ByteArrayUtil.sha256(json)
         return Triple(data, json, hash)
     }
 
     private fun encodeJSON(data: CollectedClientData): String {
-        return objectMapper.writeValueAsString(data)
+        return gson.toJson(data)
     }
 
     override fun onFinish(opType: OperationType, opId: String) {

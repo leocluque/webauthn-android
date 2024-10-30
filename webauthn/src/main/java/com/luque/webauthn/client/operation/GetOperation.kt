@@ -22,6 +22,7 @@ import com.luque.webauthn.error.BadOperationException
 import com.luque.webauthn.error.ErrorReason
 import com.luque.webauthn.util.WAKLogger
 import com.luque.webauthn.util.ByteArrayUtil
+import kotlinx.coroutines.CoroutineScope
 
 class GetOperation(
     private val options: PublicKeyCredentialRequestOptions,
@@ -160,11 +161,11 @@ class GetOperation(
 
     private var continuation: Continuation<GetAssertionResponse>? = null
 
-    suspend fun start(): GetAssertionResponse = suspendCoroutine { cont ->
+    suspend fun start(coroutineScope: CoroutineScope): GetAssertionResponse = suspendCoroutine { cont ->
 
         WAKLogger.d(TAG, "start")
 
-        GlobalScope.launch {
+        coroutineScope.launch {
 
             if (stopped) {
                 WAKLogger.d(TAG, "already stopped")
@@ -182,17 +183,17 @@ class GetOperation(
 
             continuation = cont
 
-            startTimer()
+            startTimer(coroutineScope)
 
             session.listener = sessionListener
             session.start()
         }
     }
 
-    fun cancel(reason: ErrorReason = ErrorReason.Timeout) {
+    fun cancel(reason: ErrorReason = ErrorReason.Timeout, coroutineScope: CoroutineScope) {
         WAKLogger.d(TAG, "cancel")
         if (continuation != null && !this.stopped) {
-            GlobalScope.launch {
+            coroutineScope.launch {
                 when (session.transport) {
                     AuthenticatorTransport.Internal -> {
                         when (reason) {
@@ -247,14 +248,14 @@ class GetOperation(
 
     private var timer: Timer? = null
 
-    private fun startTimer() {
+    private fun startTimer(coroutineScope: CoroutineScope) {
         WAKLogger.d(TAG, "startTimer")
         stopTimer()
         timer = Timer()
         timer!!.schedule(object: TimerTask(){
             override fun run() {
                 timer = null
-                onTimeout()
+                onTimeout(coroutineScope)
             }
         }, lifetimeTimer*1000)
     }
@@ -265,10 +266,10 @@ class GetOperation(
         timer = null
     }
 
-    private fun onTimeout() {
+    private fun onTimeout(coroutineScope: CoroutineScope) {
         WAKLogger.d(TAG, "onTimeout")
         stopTimer()
-        cancel(ErrorReason.Timeout)
+        cancel(ErrorReason.Timeout, coroutineScope)
     }
 
     private fun judgeUserVerificationExecution(session: GetAssertionSession): Boolean {

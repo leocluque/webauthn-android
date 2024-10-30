@@ -1,11 +1,8 @@
 package com.luque.webauthn.authenticator.internal.key
 
-import android.annotation.TargetApi
 import android.content.Context
-import android.os.Build
 import com.luque.webauthn.authenticator.COSEAlgorithmIdentifier
 import com.luque.webauthn.util.WAKLogger
-
 
 class KeySupportChooser(private val context: Context) {
 
@@ -15,21 +12,16 @@ class KeySupportChooser(private val context: Context) {
 
     fun choose(algorithms: List<Int>): KeySupport? {
         WAKLogger.d(TAG, "choose support module")
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            chooseInternal(algorithms)
-        } else {
-            WAKLogger.d(TAG, "this android version is below M, use legacy version")
-            chooseLegacyInternal(algorithms)
-        }
+        return chooseInternal(algorithms)
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     private fun chooseInternal(algorithms: List<Int>): KeySupport? {
         for (alg in algorithms) {
             when (alg) {
                 COSEAlgorithmIdentifier.es256 -> {
                     return DefaultKeySupport(alg)
                 }
+
                 else -> {
                     WAKLogger.d(TAG, "key support for this algorithm not found")
                 }
@@ -45,6 +37,7 @@ class KeySupportChooser(private val context: Context) {
                 COSEAlgorithmIdentifier.es256 -> {
                     return LegacyKeySupport(context, alg)
                 }
+
                 else -> {
                     WAKLogger.d(TAG, "key support for this algorithm not found")
                 }

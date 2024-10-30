@@ -5,7 +5,7 @@ class UserConsentUIConfig {
 
     var alwaysShowKeySelection: Boolean = false
 
-    var messageKeyguardTitle       = "Device Authentication"
+    var messageKeyguardTitle = "Device Authentication"
     var messageKeyguardDescription = "Authenticate to handle account information"
     var messageKeyguardNotSetError = "Currently, keyguard is not set"
 

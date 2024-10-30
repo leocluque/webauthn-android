@@ -104,7 +104,8 @@ class RegistrationActivity : AppCompatActivity() {
         return WebAuthClient.create(
             activity = this,
             origin = "https://example.org",
-            ui = consentUI!!
+            ui = consentUI!!,
+            coroutineScope = this.lifecycleScope
         ).apply {
             maxTimeout = 30
             defaultTimeout = 20
@@ -160,7 +161,7 @@ class RegistrationActivity : AppCompatActivity() {
         }
 
         try {
-            val cred = webAuthnClient.create(options)
+            val cred = webAuthnClient.create(options, this.lifecycleScope)
             WAKLogger.d(TAG, "CHALLENGE:" + ByteArrayUtil.encodeBase64URL(options.challenge))
             showResultActivity(cred)
         } catch (e: Exception) {

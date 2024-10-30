@@ -1,9 +1,8 @@
 package com.luque.webauthn.authenticator.internal.ui
 
-import android.annotation.TargetApi
 import android.content.Intent
-import android.os.Build
 import androidx.fragment.app.FragmentActivity
+import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
 import com.luque.webauthn.authenticator.internal.ui.dialog.DefaultRegistrationConfirmationDialog
 import com.luque.webauthn.authenticator.internal.ui.dialog.DefaultSelectionConfirmationDialog
 import com.luque.webauthn.authenticator.internal.ui.dialog.RegistrationConfirmationDialogListener
@@ -13,25 +12,16 @@ import com.luque.webauthn.authenticator.internal.ui.dialog.VerificationErrorDial
 import com.luque.webauthn.data.PublicKeyCredentialRpEntity
 import com.luque.webauthn.data.PublicKeyCredentialUserEntity
 import com.luque.webauthn.error.CancelledException
-
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resumeWithException
-
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-
-import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
 import com.luque.webauthn.error.ErrorReason
 import com.luque.webauthn.util.WAKLogger
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
-
-
-
-@TargetApi(Build.VERSION_CODES.M)
 class LegacyUserConsentUI(
-    private val activity: FragmentActivity
-): UserConsentUI {
+    private val activity: FragmentActivity,
+) : UserConsentUI {
 
     companion object {
         val TAG = LegacyUserConsentUI::class.simpleName
@@ -80,7 +70,7 @@ class LegacyUserConsentUI(
     override suspend fun requestUserConsent(
         rpEntity: PublicKeyCredentialRpEntity,
         userEntity: PublicKeyCredentialUserEntity,
-        requireUserVerification: Boolean
+        requireUserVerification: Boolean,
     ): String = suspendCoroutine { cont ->
 
         WAKLogger.d(TAG, "requestUserConsent")
@@ -116,8 +106,8 @@ class LegacyUserConsentUI(
     }
 
     override suspend fun requestUserSelection(
-        sources:                 List<PublicKeyCredentialSource>,
-        requireUserVerification: Boolean
+        sources: List<PublicKeyCredentialSource>,
+        requireUserVerification: Boolean,
     ): PublicKeyCredentialSource = suspendCoroutine { cont ->
 
         WAKLogger.d(TAG, "requestUserSelection")
@@ -163,7 +153,7 @@ class LegacyUserConsentUI(
 
     private fun <T> showErrorDialog(cont: Continuation<T>, reason: String) {
         val dialog = VerificationErrorDialog(config)
-        dialog.show(activity, reason, object: VerificationErrorDialogListener {
+        dialog.show(activity, reason, object : VerificationErrorDialogListener {
             override fun onComplete() {
                 fail(cont)
             }

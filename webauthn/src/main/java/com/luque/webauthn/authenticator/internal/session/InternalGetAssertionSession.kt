@@ -1,16 +1,6 @@
 package com.luque.webauthn.authenticator.internal.session
 
-import com.luque.webauthn.authenticator.internal.key.KeySupportChooser
-import com.luque.webauthn.data.AuthenticatorAttachment
-import com.luque.webauthn.data.AuthenticatorTransport
-import com.luque.webauthn.data.PublicKeyCredentialDescriptor
-import com.luque.webauthn.error.CancelledException
-import com.luque.webauthn.error.ErrorReason
-import com.luque.webauthn.error.TimeoutException
-import com.luque.webauthn.util.ByteArrayUtil
-import com.luque.webauthn.util.WAKLogger
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import com.luque.webauthn.authenticator.AuthenticatorAssertionResult
 import com.luque.webauthn.authenticator.AuthenticatorData
@@ -19,16 +9,23 @@ import com.luque.webauthn.authenticator.GetAssertionSessionListener
 import com.luque.webauthn.authenticator.internal.CredentialStore
 import com.luque.webauthn.authenticator.internal.InternalAuthenticatorSetting
 import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
+import com.luque.webauthn.authenticator.internal.key.KeySupportChooser
 import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
-
-
-
+import com.luque.webauthn.data.AuthenticatorAttachment
+import com.luque.webauthn.data.AuthenticatorTransport
+import com.luque.webauthn.data.PublicKeyCredentialDescriptor
+import com.luque.webauthn.error.CancelledException
+import com.luque.webauthn.error.ErrorReason
+import com.luque.webauthn.error.TimeoutException
+import com.luque.webauthn.util.ByteArrayUtil
+import com.luque.webauthn.util.WAKLogger
 
 class InternalGetAssertionSession(
     private val setting: InternalAuthenticatorSetting,
     private val ui: UserConsentUI,
     private val credentialStore: CredentialStore,
-    private val keySupportChooser: KeySupportChooser
+    private val keySupportChooser: KeySupportChooser,
+    private val coroutineScope: CoroutineScope
 ) : GetAssertionSession {
 
     companion object {
@@ -46,7 +43,6 @@ class InternalGetAssertionSession(
     override val transport: AuthenticatorTransport
         get() = setting.transport
 
-
     override fun getAssertion(
         rpId:                          String,
         hash:                          ByteArray,
@@ -56,10 +52,8 @@ class InternalGetAssertionSession(
     ) {
         WAKLogger.d(TAG, "getAssertion")
 
-        GlobalScope.launch {
-
-            val sources =
-                gatherCredentialSources(rpId, allowCredentialDescriptorList)
+        coroutineScope.launch {
+            val sources = gatherCredentialSources(rpId, allowCredentialDescriptorList)
 
             if (sources.isEmpty()) {
                 WAKLogger.d(TAG, "allowable credential source not found, stop session")
@@ -70,7 +64,7 @@ class InternalGetAssertionSession(
             val cred = try {
                 WAKLogger.d(TAG, "request user selection")
                 ui.requestUserSelection(
-                    sources                 = sources,
+                    sources = sources,
                     requireUserVerification = requireUserVerification
                 )
             } catch (e: CancelledException) {
@@ -87,30 +81,25 @@ class InternalGetAssertionSession(
                 return@launch
             }
 
-
-            cred.signCount = cred.signCount + setting.counterStep
+            cred.signCount += setting.counterStep
 
             WAKLogger.d(TAG, "update credential")
-
             if (!credentialStore.saveCredentialSource(cred)) {
-
                 WAKLogger.d(TAG, "failed to update credential")
                 stop(ErrorReason.Unknown)
                 return@launch
-
             }
 
             val extensions = HashMap<String, Any>()
-
             val rpIdHash = ByteArrayUtil.sha256(rpId)
 
             val authenticatorData = AuthenticatorData(
-                rpIdHash               = rpIdHash,
-                userPresent            = (requireUserPresence || requireUserVerification),
-                userVerified           = requireUserVerification,
-                signCount              = cred.signCount.toUInt(),
+                rpIdHash = rpIdHash,
+                userPresent = (requireUserPresence || requireUserVerification),
+                userVerified = requireUserVerification,
+                signCount = cred.signCount.toUInt(),
                 attestedCredentialData = null,
-                extensions             = extensions
+                extensions = extensions
             )
 
             val keySupport = keySupportChooser.choose(listOf(cred.alg))
@@ -125,36 +114,29 @@ class InternalGetAssertionSession(
                 return@launch
             }
 
-            val dataToBeSigned =
-                ByteArrayUtil.merge(authenticatorDataBytes, hash)
-
+            val dataToBeSigned = ByteArrayUtil.merge(authenticatorDataBytes, hash)
             val signature = keySupport.sign(cred.keyLabel, dataToBeSigned)
             if (signature == null) {
                 stop(ErrorReason.Unknown)
                 return@launch
             }
 
-            val credentialId =
-                if (allowCredentialDescriptorList.size != 1) { cred.id } else { null }
-
-            val assertion =
-                AuthenticatorAssertionResult(
-                    credentialId      = credentialId,
-                    authenticatorData = authenticatorDataBytes,
-                    signature         = signature,
-                    userHandle        = cred.userHandle
-                )
-
+            val credentialId = if (allowCredentialDescriptorList.size != 1) cred.id else null
+            val assertion = AuthenticatorAssertionResult(
+                credentialId = credentialId,
+                authenticatorData = authenticatorDataBytes,
+                signature = signature,
+                userHandle = cred.userHandle
+            )
 
             onComplete()
-
             listener?.onCredentialDiscovered(this@InternalGetAssertionSession, assertion)
         }
     }
 
     override fun canPerformUserVerification(): Boolean {
         WAKLogger.d(TAG, "canPerformUserVerification")
-        return this.setting.allowUserVerification
+        return setting.allowUserVerification
     }
 
     override fun start() {
@@ -207,18 +189,10 @@ class InternalGetAssertionSession(
         rpId: String,
         allowCredentialDescriptorList: List<PublicKeyCredentialDescriptor>
     ): List<PublicKeyCredentialSource> {
-
         return if (allowCredentialDescriptorList.isEmpty()) {
-
             credentialStore.loadAllCredentialSources(rpId)
-
         } else {
-
-            allowCredentialDescriptorList.mapNotNull {
-                credentialStore.lookupCredentialSource(it.id)
-            }
-
+            allowCredentialDescriptorList.mapNotNull { credentialStore.lookupCredentialSource(it.id) }
         }
     }
-
 }

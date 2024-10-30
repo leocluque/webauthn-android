@@ -25,24 +25,24 @@ interface SelectionConfirmationDialogListener {
 interface SelectionConfirmationDialog {
     fun show(
         activity: FragmentActivity,
-        sources:  List<PublicKeyCredentialSource>,
-        listener: SelectionConfirmationDialogListener
+        sources: List<PublicKeyCredentialSource>,
+        listener: SelectionConfirmationDialogListener,
     )
 }
 
 
 class DefaultSelectionConfirmationDialog(
-    private val config: UserConsentUIConfig
-): SelectionConfirmationDialog {
+    private val config: UserConsentUIConfig,
+) : SelectionConfirmationDialog {
 
     companion object {
-       val TAG = DefaultSelectionConfirmationDialog::class.simpleName
+        val TAG = DefaultSelectionConfirmationDialog::class.simpleName
     }
 
     override fun show(
         activity: FragmentActivity,
-        sources:  List<PublicKeyCredentialSource>,
-        listener: SelectionConfirmationDialogListener
+        sources: List<PublicKeyCredentialSource>,
+        listener: SelectionConfirmationDialogListener,
     ) {
         val dialog = Dialog(activity)
 
@@ -57,11 +57,12 @@ class DefaultSelectionConfirmationDialog(
         dialog.setContentView(R.layout.webauthn_selection_conformation_dialog)
 
         dialog.findViewById<TextView>(R.id.webauthn_selection_confirmation_title).text =
-                config.selectionDialogTitle
+            config.selectionDialogTitle
 
         val spinner = dialog.findViewById<Spinner>(R.id.webauthn_selection_sources)
         val sourceTitles = sources.map { it.otherUI }
-        val sourcesAdapter = ArrayAdapter<String>(activity, R.layout.webauthn_selection_source_item, sourceTitles)
+        val sourcesAdapter =
+            ArrayAdapter<String>(activity, R.layout.webauthn_selection_source_item, sourceTitles)
         spinner.adapter = sourcesAdapter
 
         dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
@@ -69,22 +70,24 @@ class DefaultSelectionConfirmationDialog(
         dialog.findViewById<Button>(R.id.webauthn_selection_confirmation_cancel_button).text =
             config.selectionDialogCancelButtonText
 
-        dialog.findViewById<Button>(R.id.webauthn_selection_confirmation_cancel_button).setOnClickListener {
-            WAKLogger.d(TAG, "cancel clicked")
-            dialog.dismiss()
-            listener.onCancel()
-        }
+        dialog.findViewById<Button>(R.id.webauthn_selection_confirmation_cancel_button)
+            .setOnClickListener {
+                WAKLogger.d(TAG, "cancel clicked")
+                dialog.dismiss()
+                listener.onCancel()
+            }
 
         dialog.findViewById<Button>(R.id.webauthn_selection_confirmation_ok_button).text =
             config.selectionDialogSelectButtonText
 
-        dialog.findViewById<Button>(R.id.webauthn_selection_confirmation_ok_button).setOnClickListener {
-            WAKLogger.d(TAG, "select clicked")
-            val selected = sources[spinner.selectedItemPosition]
-            WAKLogger.w(TAG, "SELECTED ${selected.otherUI}")
-            dialog.dismiss()
-            listener.onSelect(selected)
-        }
+        dialog.findViewById<Button>(R.id.webauthn_selection_confirmation_ok_button)
+            .setOnClickListener {
+                WAKLogger.d(TAG, "select clicked")
+                val selected = sources[spinner.selectedItemPosition]
+                WAKLogger.w(TAG, "SELECTED ${selected.otherUI}")
+                dialog.dismiss()
+                listener.onSelect(selected)
+            }
 
         dialog.show()
 

@@ -10,10 +10,10 @@ import com.luque.webauthn.data.PublicKeyCredentialUserEntity
 import com.luque.webauthn.error.ErrorReason
 
 class AuthenticatorAssertionResult(
-    var credentialId:      ByteArray?,
-    var userHandle:        ByteArray?,
-    var signature:         ByteArray,
-    var authenticatorData: ByteArray
+    var credentialId: ByteArray?,
+    var userHandle: ByteArray?,
+    var signature: ByteArray,
+    var authenticatorData: ByteArray,
 )
 
 interface MakeCredentialSessionListener {
@@ -27,7 +27,11 @@ interface GetAssertionSessionListener {
     fun onAvailable(session: GetAssertionSession) {}
     fun onUnavailable(session: GetAssertionSession) {}
     fun onOperationStopped(session: GetAssertionSession, reason: ErrorReason) {}
-    fun onCredentialDiscovered(session: GetAssertionSession, assertion: AuthenticatorAssertionResult) {}
+    fun onCredentialDiscovered(
+        session: GetAssertionSession,
+        assertion: AuthenticatorAssertionResult,
+    ) {
+    }
 }
 
 interface GetAssertionSession {
@@ -41,9 +45,10 @@ interface GetAssertionSession {
         hash: ByteArray,
         allowCredentialDescriptorList: List<PublicKeyCredentialDescriptor>,
         requireUserPresence: Boolean,
-        requireUserVerification: Boolean
+        requireUserVerification: Boolean,
         // extensions: Map<String, Any>
     )
+
     fun canPerformUserVerification(): Boolean
     fun start()
     fun cancel(reason: ErrorReason)
@@ -63,8 +68,9 @@ interface MakeCredentialSession {
         requireUserPresence: Boolean,
         requireUserVerification: Boolean,
         credTypesAndPubKeyAlgs: List<PublicKeyCredentialParameters>,
-        excludeCredentialDescriptorList: List<PublicKeyCredentialDescriptor>
+        excludeCredentialDescriptorList: List<PublicKeyCredentialDescriptor>,
     )
+
     fun canPerformUserVerification(): Boolean
     fun canStoreResidentKey(): Boolean
     fun start()

@@ -1,38 +1,35 @@
 package com.luque.webauthn.authenticator.internal.session
 
-import com.luque.webauthn.error.CancelledException
-import com.luque.webauthn.error.ErrorReason
-import com.luque.webauthn.error.TimeoutException
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-
 import com.luque.webauthn.authenticator.AttestedCredentialData
 import com.luque.webauthn.authenticator.AuthenticatorData
 import com.luque.webauthn.authenticator.MakeCredentialSession
 import com.luque.webauthn.authenticator.MakeCredentialSessionListener
 import com.luque.webauthn.authenticator.internal.CredentialStore
 import com.luque.webauthn.authenticator.internal.InternalAuthenticatorSetting
+import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
 import com.luque.webauthn.authenticator.internal.key.KeySupportChooser
+import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
 import com.luque.webauthn.data.AuthenticatorAttachment
 import com.luque.webauthn.data.AuthenticatorTransport
 import com.luque.webauthn.data.PublicKeyCredentialDescriptor
 import com.luque.webauthn.data.PublicKeyCredentialParameters
 import com.luque.webauthn.data.PublicKeyCredentialRpEntity
 import com.luque.webauthn.data.PublicKeyCredentialUserEntity
-import com.luque.webauthn.authenticator.internal.PublicKeyCredentialSource
-import com.luque.webauthn.authenticator.internal.ui.UserConsentUI
-import com.luque.webauthn.util.WAKLogger
+import com.luque.webauthn.error.CancelledException
+import com.luque.webauthn.error.ErrorReason
+import com.luque.webauthn.error.TimeoutException
 import com.luque.webauthn.util.ByteArrayUtil
-import java.util.*
-
-
+import com.luque.webauthn.util.WAKLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 class InternalMakeCredentialSession(
     private val setting: InternalAuthenticatorSetting,
     private val ui: UserConsentUI,
     private val credentialStore: CredentialStore,
-    private val keySupportChooser: KeySupportChooser
+    private val keySupportChooser: KeySupportChooser,
+    private val coroutineScope: CoroutineScope
 ) : MakeCredentialSession {
 
     companion object {
@@ -51,18 +48,18 @@ class InternalMakeCredentialSession(
         get() = setting.transport
 
     override fun makeCredential(
-        hash:                            ByteArray,
+        hash: ByteArray,
         rpEntity: PublicKeyCredentialRpEntity,
         userEntity: PublicKeyCredentialUserEntity,
-        requireResidentKey:              Boolean,
-        requireUserPresence:             Boolean,
-        requireUserVerification:         Boolean,
-        credTypesAndPubKeyAlgs:          List<PublicKeyCredentialParameters>,
-        excludeCredentialDescriptorList: List<PublicKeyCredentialDescriptor>
+        requireResidentKey: Boolean,
+        requireUserPresence: Boolean,
+        requireUserVerification: Boolean,
+        credTypesAndPubKeyAlgs: List<PublicKeyCredentialParameters>,
+        excludeCredentialDescriptorList: List<PublicKeyCredentialDescriptor>,
     ) {
         WAKLogger.d(TAG, "makeCredential")
 
-        GlobalScope.launch {
+        coroutineScope.launch {
 
             val requestedAlgorithms = credTypesAndPubKeyAlgs.map { it.alg }
 
@@ -78,7 +75,6 @@ class InternalMakeCredentialSession(
             }
 
             if (hasSourceToBeExcluded) {
-                // TODO ask user to create new credential
                 stop(ErrorReason.Unknown)
                 return@launch
             }
@@ -88,23 +84,22 @@ class InternalMakeCredentialSession(
                 return@launch
             }
 
-
             val keyName = try {
                 WAKLogger.d(TAG, "makeCredential - requestUserConsent")
                 ui.requestUserConsent(
-                    rpEntity                = rpEntity,
-                    userEntity              = userEntity,
+                    rpEntity = rpEntity,
+                    userEntity = userEntity,
                     requireUserVerification = requireUserVerification
                 )
-            } catch(e: CancelledException) {
+            } catch (e: CancelledException) {
                 WAKLogger.d(TAG, "makeCredential - requestUserConsent failure: $e")
                 stop(ErrorReason.Cancelled)
                 return@launch
-            } catch(e: TimeoutException) {
+            } catch (e: TimeoutException) {
                 WAKLogger.d(TAG, "makeCredential - requestUserConsent failure: $e")
                 stop(ErrorReason.Timeout)
                 return@launch
-            } catch(e: Exception) {
+            } catch (e: Exception) {
                 WAKLogger.d(TAG, "makeCredential - requestUserConsent failure: $e")
                 stop(ErrorReason.Unknown)
                 return@launch
@@ -113,29 +108,26 @@ class InternalMakeCredentialSession(
             WAKLogger.d(TAG, "makeCredential - createNewCredentialId")
             val credentialId = createNewCredentialId()
 
-            val rpId       = rpEntity.id!!
+            val rpId = rpEntity.id!!
             val userHandle = userEntity.id
 
             WAKLogger.d(TAG, "makeCredential - create new credential source")
 
             val source = PublicKeyCredentialSource(
-                signCount  = 0u,
-                id         = credentialId,
-                rpId       = rpId,
+                signCount = 0u,
+                id = credentialId,
+                rpId = rpId,
                 userHandle = userHandle,
-                alg        = keySupport.alg,
-                otherUI    = keyName
+                alg = keySupport.alg,
+                otherUI = keyName
             )
 
-            credentialStore.deleteAllCredentialSources(
-                rpId       = rpId,
-                userHandle = userHandle
-            )
+            credentialStore.deleteAllCredentialSources(rpId = rpId, userHandle = userHandle)
 
             WAKLogger.d(TAG, "makeCredential - create new key pair")
 
             val pubKey = keySupport.createKeyPair(
-                alias          = source.keyLabel,
+                alias = source.keyLabel,
                 clientDataHash = hash
             )
 
@@ -154,8 +146,8 @@ class InternalMakeCredentialSession(
             WAKLogger.d(TAG, "makeCredential - create attested credential data")
 
             val attestedCredentialData = AttestedCredentialData(
-                aaguid              = ByteArrayUtil.zeroUUIDBytes(),
-                credentialId        = credentialId,
+                aaguid = ByteArrayUtil.zeroUUIDBytes(),
+                credentialId = credentialId,
                 credentialPublicKey = pubKey
             )
 
@@ -166,20 +158,20 @@ class InternalMakeCredentialSession(
             WAKLogger.d(TAG, "makeCredential - create authenticator data")
 
             val authenticatorData = AuthenticatorData(
-                rpIdHash               = rpIdHash,
-                userPresent            = (requireUserPresence || requireUserVerification),
-                userVerified           = requireUserVerification,
-                signCount              = 0.toUInt(),
+                rpIdHash = rpIdHash,
+                userPresent = (requireUserPresence || requireUserVerification),
+                userVerified = requireUserVerification,
+                signCount = 0.toUInt(),
                 attestedCredentialData = attestedCredentialData,
-                extensions             = extensions
+                extensions = extensions
             )
 
             WAKLogger.d(TAG, "makeCredential - create attestation object")
 
             val attestation = keySupport.buildAttestationObject(
-                alias             = source.keyLabel,
+                alias = source.keyLabel,
                 authenticatorData = authenticatorData,
-                clientDataHash    = hash
+                clientDataHash = hash
             )
 
             if (attestation == null) {
@@ -190,9 +182,9 @@ class InternalMakeCredentialSession(
             onComplete()
 
             listener?.onCredentialCreated(
-                this@InternalMakeCredentialSession, attestation)
+                this@InternalMakeCredentialSession, attestation
+            )
         }
-
     }
 
     override fun canPerformUserVerification(): Boolean {
@@ -255,5 +247,4 @@ class InternalMakeCredentialSession(
     private fun createNewCredentialId(): ByteArray {
         return ByteArrayUtil.fromUUID(UUID.randomUUID())
     }
-
 }

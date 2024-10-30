@@ -8,7 +8,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -49,7 +49,9 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(libs.coroutines.core)
-    implementation(libs.jackson.core)
+//    implementation(libs.jackson.core)
+    implementation (libs.gson)
+
     implementation(libs.glide)
 
 

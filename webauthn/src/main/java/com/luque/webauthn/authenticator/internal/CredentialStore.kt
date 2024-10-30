@@ -5,10 +5,8 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
 import android.database.sqlite.SQLiteOpenHelper
-import com.luque.webauthn.util.WAKLogger
 import com.luque.webauthn.util.ByteArrayUtil
-import java.lang.Exception
-
+import com.luque.webauthn.util.WAKLogger
 
 class CredentialStore(context: Context) {
 
@@ -20,7 +18,7 @@ class CredentialStore(context: Context) {
 
     private val db = CredentialStoreDatabaseHelper(
         context = context,
-        name    = DatabaseName,
+        name = DatabaseName,
         version = DatabaseVersion
     )
 
@@ -29,7 +27,10 @@ class CredentialStore(context: Context) {
         return db.searchByRpId(rpId)
     }
 
-    fun loadAllCredentialSources(rpId: String, userHandle: ByteArray): List<PublicKeyCredentialSource> {
+    fun loadAllCredentialSources(
+        rpId: String,
+        userHandle: ByteArray,
+    ): List<PublicKeyCredentialSource> {
         WAKLogger.d(TAG, "loadAllCredentialSource")
         return loadAllCredentialSources(rpId).filter {
             ByteArrayUtil.equals(it.userHandle, userHandle)
@@ -61,8 +62,8 @@ class CredentialStore(context: Context) {
         val content = source.toBase64()
         return if (content != null) {
             db.save(
-                id      = source.idHex,
-                rpId    = source.rpId,
+                id = source.idHex,
+                rpId = source.rpId,
                 content = content
             )
         } else {
@@ -75,16 +76,16 @@ class CredentialStore(context: Context) {
 
 class CredentialStoreDatabaseHelper(
     context: Context,
-    name:    String,
-    version: Int
-): SQLiteOpenHelper(context, name, null, version) {
+    name: String,
+    version: Int,
+) : SQLiteOpenHelper(context, name, null, version) {
 
     companion object {
         private val TAG = CredentialStoreDatabaseHelper::class.simpleName
         private const val TableName = "credentials"
-        private const val ColumnId       = "id"
-        private const val ColumnRpId     = "rp_id"
-        private const val ColumnContent  = "content"
+        private const val ColumnId = "id"
+        private const val ColumnRpId = "rp_id"
+        private const val ColumnContent = "content"
         private const val ColumnOnUpdate = "on_update"
     }
 
@@ -135,7 +136,7 @@ class CredentialStoreDatabaseHelper(
         }
     }
 
-    fun delete(id: String):Boolean {
+    fun delete(id: String): Boolean {
         WAKLogger.d(TAG, "delete")
         val db = writableDatabase
         return try {

@@ -17,99 +17,91 @@ import java.security.spec.ECGenParameterSpec
 import java.util.*
 import javax.security.auth.x500.X500Principal
 
-
 class LegacyKeySupport(
     private val context: Context,
     override val alg: Int
-): KeySupport {
+) : KeySupport {
 
     companion object {
         val TAG = LegacyKeySupport::class.simpleName
     }
 
     override fun createKeyPair(alias: String, clientDataHash: ByteArray): COSEKey? {
-        try {
-            val generator =
-                KeyPairGenerator.getInstance("EC",
-                    KeyStoreType.Android
-                )
-            generator.initialize(this.createKeyPairSpec(alias))
+        return try {
+            val generator = KeyPairGenerator.getInstance("EC", KeyStoreType.Android)
+            generator.initialize(createKeyPairSpec(alias))
+
             val pubKey = generator.generateKeyPair().public as ECPublicKey
+            val encoded = pubKey.encoded.takeIf { it.size == 91 }
+                ?: throw InvalidStateException("length of ECPublicKey should be 91")
 
-            val encoded = pubKey.encoded
-            if (encoded.size != 91) {
-                throw InvalidStateException("length of ECPublicKey should be 91")
-            }
+            val x = encoded.copyOfRange(27, 59)
+            val y = encoded.copyOfRange(59, 91)
 
-            val x = Arrays.copyOfRange(encoded, 27, 59)
-            val y = Arrays.copyOfRange(encoded, 59, 91)
-
-            return COSEKeyEC2(
+            COSEKeyEC2(
                 alg = alg,
                 crv = COSEKeyCurveType.p256,
-                x   = x,
-                y   = y
+                x = x,
+                y = y
             )
         } catch (e: Exception) {
-            WAKLogger.w(TAG, "failed to create key pair" + e.localizedMessage)
-            return null
+            WAKLogger.w(TAG, "Failed to create key pair: ${e.localizedMessage}")
+            null
         }
     }
 
     private fun createKeyPairSpec(alias: String): KeyPairGeneratorSpec {
-        val start = Calendar.getInstance()
-        val end = Calendar.getInstance()
-        end.add(Calendar.YEAR, 100)
+        val endCalendar = Calendar.getInstance().apply { add(Calendar.YEAR, 100) }
         return KeyPairGeneratorSpec.Builder(context)
             .setAlgorithmParameterSpec(ECGenParameterSpec(CurveType.SECP256r1))
             .setAlias(alias)
             .setSubject(X500Principal("CN=$alias"))
-            .setSerialNumber(BigInteger.valueOf(1000000))
-            .setStartDate(start.time)
-            .setEndDate(end.time)
+            .setSerialNumber(BigInteger.ONE)
+            .setStartDate(Date())
+            .setEndDate(endCalendar.time)
             .build()
     }
 
     override fun sign(alias: String, data: ByteArray): ByteArray? {
-        val keyStore = KeyStore.getInstance(KeyStoreType.Android)
-        keyStore.load(null)
-        val privateKey = keyStore.getKey(alias, null) as PrivateKey
-        val signer = Signature.getInstance(SignAlgorithmType.SHA256WithECDSA)
-        signer.initSign(privateKey)
-        signer.update(data)
-        return signer.sign()
+        return try {
+            val keyStore = KeyStore.getInstance(KeyStoreType.Android).apply { load(null) }
+            val privateKey = keyStore.getKey(alias, null) as PrivateKey
+            Signature.getInstance(SignAlgorithmType.SHA256WithECDSA).run {
+                initSign(privateKey)
+                update(data)
+                sign()
+            }
+        } catch (e: Exception) {
+            WAKLogger.w(TAG, "Failed to sign data: ${e.localizedMessage}")
+            null
+        }
     }
 
     override fun buildAttestationObject(
-        alias:             String,
-        clientDataHash:    ByteArray,
+        alias: String,
+        clientDataHash: ByteArray,
         authenticatorData: AuthenticatorData
     ): AttestationObject? {
-
-        val authenticatorDataBytes = authenticatorData.toBytes()
-        if (authenticatorDataBytes == null) {
-            WAKLogger.d(TAG, "failed to build authenticator data")
+        val authDataBytes = authenticatorData.toBytes() ?: run {
+            WAKLogger.d(TAG, "Failed to build authenticator data")
             return null
         }
 
-        val bytesToBeSigned =
-            ByteArrayUtil.merge(authenticatorDataBytes, clientDataHash)
-
-        val sig = this.sign(alias, bytesToBeSigned)
-        if (sig == null) {
-            WAKLogger.d(TAG, "failed to sign authenticator data")
+        val bytesToBeSigned = ByteArrayUtil.merge(authDataBytes, clientDataHash)
+        val signature = sign(alias, bytesToBeSigned) ?: run {
+            WAKLogger.d(TAG, "Failed to sign authenticator data")
             return null
         }
 
-        val attStmt = HashMap<String, Any>()
-        attStmt["alg"] = alg.toLong()
-        attStmt["sig"] = sig
+        val attStmt = mutableMapOf<String, Any>(
+            "alg" to alg.toLong(),
+            "sig" to signature
+        )
 
         return AttestationObject(
-            fmt      = AttestationFormatType.Packed,
+            fmt = AttestationFormatType.Packed,
             authData = authenticatorData,
-            attStmt  = attStmt
+            attStmt = attStmt
         )
     }
 }
-

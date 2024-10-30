@@ -1,8 +1,8 @@
 package com.luque.webauthn.client.operation
 
-import com.luque.webauthn.authenticator.attestation.AttestationObject
 import com.luque.webauthn.authenticator.MakeCredentialSession
 import com.luque.webauthn.authenticator.MakeCredentialSessionListener
+import com.luque.webauthn.authenticator.attestation.AttestationObject
 import com.luque.webauthn.data.AttestationConveyancePreference
 import com.luque.webauthn.data.AuthenticatorAttestationResponse
 import com.luque.webauthn.data.AuthenticatorTransport
@@ -16,7 +16,7 @@ import com.luque.webauthn.error.BadOperationException
 import com.luque.webauthn.error.ErrorReason
 import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.WAKLogger
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Timer
 import java.util.TimerTask
@@ -29,12 +29,12 @@ import kotlin.coroutines.suspendCoroutine
 
 class CreateOperation(
     private val options: PublicKeyCredentialCreationOptions,
-    private val rpId:           String,
+    private val rpId: String,
     private val session: MakeCredentialSession,
     private val clientData: CollectedClientData,
     private val clientDataJSON: String,
     private val clientDataHash: ByteArray,
-    private val lifetimeTimer:  Long
+    private val lifetimeTimer: Long,
 ) {
 
     companion object {
@@ -75,7 +75,8 @@ class CreateOperation(
                 }
 
                 if (selection.userVerification == UserVerificationRequirement.Required
-                    && !session.canPerformUserVerification()) {
+                    && !session.canPerformUserVerification()
+                ) {
                     WAKLogger.d(TAG, "This authenticator can't perform user verification")
                     stop(ErrorReason.Unsupported)
                     return
@@ -87,9 +88,9 @@ class CreateOperation(
             val userPresence = !userVerification
 
             val excludeCredentialDescriptorList =
-                    options.excludeCredentials.filter {
-                       it.transports.contains(session.transport)
-                    }
+                options.excludeCredentials.filter {
+                    it.transports.contains(session.transport)
+                }
 
             val requireResidentKey = options.authenticatorSelection?.requireResidentKey ?: false
 
@@ -100,18 +101,21 @@ class CreateOperation(
             )
 
             session.makeCredential(
-                hash                            = clientDataHash,
-                rpEntity                        = rpEntity,
-                userEntity                      = options.user,
-                requireResidentKey              = requireResidentKey,
-                requireUserPresence             = userPresence,
-                requireUserVerification         = userVerification,
-                credTypesAndPubKeyAlgs          = options.pubKeyCredParams,
+                hash = clientDataHash,
+                rpEntity = rpEntity,
+                userEntity = options.user,
+                requireResidentKey = requireResidentKey,
+                requireUserPresence = userPresence,
+                requireUserVerification = userVerification,
+                credTypesAndPubKeyAlgs = options.pubKeyCredParams,
                 excludeCredentialDescriptorList = excludeCredentialDescriptorList
             )
         }
 
-        override fun onCredentialCreated(session: MakeCredentialSession, attestationObject: AttestationObject) {
+        override fun onCredentialCreated(
+            session: MakeCredentialSession,
+            attestationObject: AttestationObject,
+        ) {
             WAKLogger.d(TAG, "onCredentialCreated")
 
             val attestedCred = attestationObject.authData.attestedCredentialData
@@ -126,7 +130,8 @@ class CreateOperation(
             val resultedAttestationObject: ByteArray?
 
             if (options.attestation == AttestationConveyancePreference.None
-                && attestationObject.isSelfAttestation()) {
+                && attestationObject.isSelfAttestation()
+            ) {
                 // if it's self attestation,
                 // embed 0x00 for aaguid, and empty CBOR map for AttStmt
 
@@ -142,7 +147,7 @@ class CreateOperation(
 
                 // replace AAGUID to null
                 val guidPos = 37 // ( rpIdHash(32), flag(1), signCount(4) )
-                for (idx in (guidPos..(guidPos+15))) {
+                for (idx in (guidPos..(guidPos + 15))) {
                     resultedAttestationObject[idx] = 0x00.toByte()
                 }
 
@@ -159,13 +164,13 @@ class CreateOperation(
             }
 
             val response = AuthenticatorAttestationResponse(
-                clientDataJSON    = clientDataJSON,
+                clientDataJSON = clientDataJSON,
                 attestationObject = resultedAttestationObject
             )
 
             val cred = PublicKeyCredential(
-                rawId    = credId,
-                id       = ByteArrayUtil.encodeBase64URL(credId),
+                rawId = credId,
+                id = ByteArrayUtil.encodeBase64URL(credId),
                 response = response
             )
 
@@ -190,11 +195,11 @@ class CreateOperation(
 
     private var continuation: Continuation<MakeCredentialResponse>? = null
 
-    suspend fun start(): MakeCredentialResponse = suspendCoroutine { cont ->
+    suspend fun start(coroutineScope: CoroutineScope): MakeCredentialResponse = suspendCoroutine { cont ->
 
         WAKLogger.d(TAG, "start")
 
-        GlobalScope.launch {
+        coroutineScope.launch {
 
             if (stopped) {
                 WAKLogger.d(TAG, "already stopped")
@@ -212,28 +217,30 @@ class CreateOperation(
 
             continuation = cont
 
-            startTimer()
+            startTimer(coroutineScope)
 
             session.listener = sessionListener
             session.start()
         }
     }
 
-    fun cancel(reason: ErrorReason = ErrorReason.Timeout) {
+    fun cancel(reason: ErrorReason = ErrorReason.Timeout, coroutineScope: CoroutineScope) {
         WAKLogger.d(TAG, "cancel")
         if (continuation != null && !this.stopped) {
-            GlobalScope.launch {
+            coroutineScope.launch {
                 when (session.transport) {
                     AuthenticatorTransport.Internal -> {
                         when (reason) {
                             ErrorReason.Timeout -> {
                                 session.cancel(ErrorReason.Timeout)
                             }
+
                             else -> {
                                 session.cancel(ErrorReason.Cancelled)
                             }
                         }
                     }
+
                     else -> {
                         stop(reason)
                     }
@@ -258,7 +265,7 @@ class CreateOperation(
         WAKLogger.d(TAG, "stopInternal")
         if (continuation == null) {
             WAKLogger.d(TAG, "not started")
-           // not started
+            // not started
             return
         }
         if (stopped) {
@@ -277,16 +284,16 @@ class CreateOperation(
 
     private var timer: Timer? = null
 
-    private fun startTimer() {
+    private fun startTimer(coroutineScope: CoroutineScope) {
         WAKLogger.d(TAG, "startTimer")
         stopTimer()
         timer = Timer()
-        timer!!.schedule(object: TimerTask(){
+        timer!!.schedule(object : TimerTask() {
             override fun run() {
                 timer = null
-                onTimeout()
+                onTimeout(coroutineScope)
             }
-        }, lifetimeTimer*1000)
+        }, lifetimeTimer * 1000)
     }
 
     private fun stopTimer() {
@@ -295,10 +302,10 @@ class CreateOperation(
         timer = null
     }
 
-    private fun onTimeout() {
+    private fun onTimeout(coroutineScope: CoroutineScope) {
         WAKLogger.d(TAG, "onTimeout")
         stopTimer()
-        cancel(ErrorReason.Timeout)
+        cancel(ErrorReason.Timeout, coroutineScope)
     }
 
     private fun judgeUserVerificationExecution(session: MakeCredentialSession): Boolean {
@@ -309,9 +316,9 @@ class CreateOperation(
                 ?: UserVerificationRequirement.Discouraged
 
         return when (userVerificationRequest) {
-            UserVerificationRequirement.Required    -> true
+            UserVerificationRequirement.Required -> true
             UserVerificationRequirement.Discouraged -> false
-            UserVerificationRequirement.Preferred   -> session.canPerformUserVerification()
+            UserVerificationRequirement.Preferred -> session.canPerformUserVerification()
         }
     }
 }

@@ -1,18 +1,18 @@
 package com.luque.webauthn.authenticator.internal
 
 import android.util.Base64
-import com.luque.webauthn.util.WAKLogger
 import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.CBORReader
 import com.luque.webauthn.util.CBORWriter
+import com.luque.webauthn.util.WAKLogger
 
 class PublicKeyCredentialSource(
-    var signCount:  UInt,
-    val id:         ByteArray,
-    val rpId:       String,
+    var signCount: UInt,
+    val id: ByteArray,
+    val rpId: String,
     val userHandle: ByteArray,
-    val alg:        Int,
-    val otherUI:    String
+    val alg: Int,
+    val otherUI: String,
 ) {
 
     companion object {
@@ -47,39 +47,39 @@ class PublicKeyCredentialSource(
                     WAKLogger.w(TAG, "'alg' key not found")
                     return null
                 }
-                val alg= (map["alg"] as Long).toInt()
+                val alg = (map["alg"] as Long).toInt()
 
                 if (!map.containsKey("id")) {
                     WAKLogger.w(TAG, "'id' key not found")
                     return null
                 }
-                val credId= map["id"] as ByteArray
+                val credId = map["id"] as ByteArray
 
                 if (!map.containsKey("rpId")) {
                     WAKLogger.w(TAG, "'rpId' key not found")
                     return null
                 }
-                val rpId= map["rpId"] as String
+                val rpId = map["rpId"] as String
 
                 if (!map.containsKey("userHandle")) {
                     WAKLogger.w(TAG, "'userHandle' key not found")
                     return null
                 }
-                val userHandle= map["userHandle"] as ByteArray
+                val userHandle = map["userHandle"] as ByteArray
 
                 if (!map.containsKey("otherUI")) {
                     WAKLogger.w(TAG, "'otherUI' key not found")
                     return null
                 }
-                val otherUI= map["otherUI"] as String
+                val otherUI = map["otherUI"] as String
 
                 return PublicKeyCredentialSource(
-                    signCount  = signCount,
-                    id         = credId,
-                    rpId       = rpId,
+                    signCount = signCount,
+                    id = credId,
+                    rpId = rpId,
                     userHandle = userHandle,
-                    alg        = alg,
-                    otherUI    = otherUI
+                    alg = alg,
+                    otherUI = otherUI
                 )
 
             } catch (e: Exception) {
@@ -94,7 +94,7 @@ class PublicKeyCredentialSource(
         get() = ByteArrayUtil.toHex(this.id)
 
     val keyLabel: String
-        get() = this.rpId +  "/" + ByteArrayUtil.toHex(this.userHandle)
+        get() = this.rpId + "/" + ByteArrayUtil.toHex(this.userHandle)
 
     fun toBase64(): String? {
         return try {
@@ -105,7 +105,7 @@ class PublicKeyCredentialSource(
             } else {
                 null
             }
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             WAKLogger.w(TAG, "failed to encode Base64: " + e.localizedMessage)
             null
         }
@@ -115,12 +115,12 @@ class PublicKeyCredentialSource(
         return try {
 
             val map = LinkedHashMap<String, Any>()
-            map["id"]         = this.id
-            map["rpId"]       = this.rpId
+            map["id"] = this.id
+            map["rpId"] = this.rpId
             map["userHandle"] = this.userHandle
-            map["alg"]        = this.alg.toLong()
-            map["signCount"]  = this.signCount.toLong()
-            map["otherUI"]    = this.otherUI
+            map["alg"] = this.alg.toLong()
+            map["signCount"] = this.signCount.toLong()
+            map["otherUI"] = this.otherUI
 
             return CBORWriter().putStringKeyMap(map).compute()
 

@@ -21,8 +21,6 @@ import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.WAKLogger
 import kotlinx.coroutines.launch
 
-
-
 class AuthenticationActivity : AppCompatActivity() {
 
     companion object {
@@ -85,7 +83,8 @@ class AuthenticationActivity : AppCompatActivity() {
         return WebAuthClient.create(
             activity = this,
             origin = "https://example.org",
-            ui = consentUI!!
+            ui = consentUI!!,
+            coroutineScope = this.lifecycleScope
         )
     }
 
@@ -138,7 +137,7 @@ class AuthenticationActivity : AppCompatActivity() {
         }
 
         try {
-            val cred = webAuthnClient?.get(options)
+            val cred = webAuthnClient?.get(options, this.lifecycleScope)
             WAKLogger.d(TAG, "CHALLENGE:" + ByteArrayUtil.encodeBase64URL(options.challenge))
             cred?.let { showResultActivity(it) } ?: kotlin.run { showErrorPopup("cred null") }
         } catch (e: Exception) {

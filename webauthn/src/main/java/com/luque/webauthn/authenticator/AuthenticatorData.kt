@@ -54,7 +54,7 @@ class COSEKeyEC2(
     val alg: Int,
     val crv: Int,
     val x: ByteArray,
-    val y: ByteArray
+    val y: ByteArray,
 ) : COSEKey {
 
     companion object {
@@ -90,7 +90,7 @@ class COSEKeyEC2(
 class COSEKeyRSA(
     val alg: Int,
     val n: ByteArray,
-    val e: ByteArray
+    val e: ByteArray,
 ) : COSEKey {
 
     companion object {
@@ -121,7 +121,7 @@ class COSEKeyRSA(
 class AttestedCredentialData(
     val aaguid: ByteArray,
     val credentialId: ByteArray,
-    val credentialPublicKey: COSEKey
+    val credentialPublicKey: COSEKey,
 ) {
 
     companion object {
@@ -151,7 +151,7 @@ class AuthenticatorDataFlags(
     private val userPresent: Boolean,
     private val userVerified: Boolean,
     private val hasAttestedCredentialData: Boolean,
-    private val hasExtension: Boolean
+    private val hasExtension: Boolean,
 ) {
 
     companion object {
@@ -204,7 +204,7 @@ class AuthenticatorData(
     private val userVerified: Boolean,
     private val signCount: UInt,
     val attestedCredentialData: AttestedCredentialData?,
-    private val extensions: Map<String, Any>
+    private val extensions: Map<String, Any>,
 ) {
 
     companion object {

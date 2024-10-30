@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.luque.webauthn_android"
-        minSdk = 21
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

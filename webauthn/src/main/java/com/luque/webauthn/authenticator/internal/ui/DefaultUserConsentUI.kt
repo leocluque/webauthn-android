@@ -1,6 +1,5 @@
 package com.luque.webauthn.authenticator.internal.ui
 
-import android.annotation.TargetApi
 import android.app.Activity.RESULT_OK
 import android.app.KeyguardManager
 import android.content.Context
@@ -24,17 +23,13 @@ import com.luque.webauthn.data.PublicKeyCredentialUserEntity
 import com.luque.webauthn.error.CancelledException
 import com.luque.webauthn.error.ErrorReason
 import com.luque.webauthn.util.WAKLogger
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-
-
-@TargetApi(Build.VERSION_CODES.M)
 class DefaultUserConsentUI(
-    private val activity: FragmentActivity
+    private val activity: FragmentActivity,
 ) : UserConsentUI {
 
     companion object {
@@ -45,7 +40,7 @@ class DefaultUserConsentUI(
     var keyguardResultListener: KeyguardResultListener? = null
 
     override val config = UserConsentUIConfig()
-    var teste : (() -> Unit)? = null
+    var teste: (() -> Unit)? = null
 
     override var isOpen: Boolean = false
         private set
@@ -116,7 +111,7 @@ class DefaultUserConsentUI(
     override suspend fun requestUserConsent(
         rpEntity: PublicKeyCredentialRpEntity,
         userEntity: PublicKeyCredentialUserEntity,
-        requireUserVerification: Boolean
+        requireUserVerification: Boolean,
     ): String = suspendCoroutine { cont ->
         WAKLogger.d(TAG, "requestUserConsent")
         onStartUserInteraction()
@@ -144,7 +139,7 @@ class DefaultUserConsentUI(
 
     override suspend fun requestUserSelection(
         sources: List<PublicKeyCredentialSource>,
-        requireUserVerification: Boolean
+        requireUserVerification: Boolean,
     ): PublicKeyCredentialSource = suspendCoroutine { cont ->
         WAKLogger.d(TAG, "requestUserSelection")
         onStartUserInteraction()
@@ -174,7 +169,7 @@ class DefaultUserConsentUI(
     private fun executeSelectionVerificationIfNeeded(
         requireUserVerification: Boolean,
         source: PublicKeyCredentialSource,
-        cont: Continuation<PublicKeyCredentialSource>
+        cont: Continuation<PublicKeyCredentialSource>,
     ) {
         if (requireUserVerification) {
             showBiometricPrompt(cont, source)
@@ -233,7 +228,8 @@ class DefaultUserConsentUI(
     private fun <T> showFingerprintPromptApi23To27(cont: Continuation<T>, consentResult: T) {
 
         try {
-            val fingerprintManager = activity.getSystemService(Context.FINGERPRINT_SERVICE) as FingerprintManager
+            val fingerprintManager =
+                activity.getSystemService(Context.FINGERPRINT_SERVICE) as FingerprintManager
             if (!fingerprintManager.isHardwareDetected || !fingerprintManager.hasEnrolledFingerprints()) {
                 showErrorDialog(cont, "Fingerprint authentication is not set up.")
                 return
@@ -255,7 +251,8 @@ class DefaultUserConsentUI(
                 null
             )
         } catch (e: Exception) {
-            val keyguardManager = activity.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            val keyguardManager =
+                activity.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
             if (keyguardManager.isKeyguardSecure) {
                 val intent = keyguardManager.createConfirmDeviceCredentialIntent(
                     "Autenticação necessária",
@@ -264,9 +261,9 @@ class DefaultUserConsentUI(
 
                 if (intent != null) {
                     activity.startActivityForResult(intent, 1408)
-                     teste = {
-                         finish(cont, consentResult)
-                     }
+                    teste = {
+                        finish(cont, consentResult)
+                    }
                 } else {
                     // Caso o intent não possa ser criado (muito raro)
                     showErrorDialog(cont, "Não foi possível solicitar autenticação.")

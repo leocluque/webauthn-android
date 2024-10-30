@@ -14,6 +14,7 @@ navigationUiKtx = "2.7.7"
 coroutines-core = "1.7.2"
 jackson-databind = "2.15.2"
 glide = "4.11.0"
+gson = "2.11.0"
 anko_version = "0.10.8"
 material-spinner = "1.2.5"
 
@@ -31,6 +32,7 @@ androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines-core" }
 jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson-databind" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 #anko = { group = "org.jetbrains.anko", name = "anko", version.ref = "anko_version" }
 #material-spinner = { group = "'com.jaredrummler'", name = "material-spinner", version.ref = "material-spinner" }
 

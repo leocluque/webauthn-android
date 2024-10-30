@@ -24,12 +24,12 @@ interface UserConsentUI {
     suspend fun requestUserConsent(
         rpEntity: PublicKeyCredentialRpEntity,
         userEntity: PublicKeyCredentialUserEntity,
-        requireUserVerification: Boolean
+        requireUserVerification: Boolean,
     ): String
 
     suspend fun requestUserSelection(
-        sources:                 List<PublicKeyCredentialSource>,
-        requireUserVerification: Boolean
+        sources: List<PublicKeyCredentialSource>,
+        requireUserVerification: Boolean,
     ): PublicKeyCredentialSource
 
 }

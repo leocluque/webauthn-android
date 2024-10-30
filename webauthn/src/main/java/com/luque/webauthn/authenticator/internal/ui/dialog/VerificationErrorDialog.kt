@@ -17,7 +17,7 @@ interface VerificationErrorDialogListener {
 }
 
 class VerificationErrorDialog(
-   private val config: UserConsentUIConfig
+    private val config: UserConsentUIConfig,
 ) {
 
     companion object {
@@ -26,8 +26,8 @@ class VerificationErrorDialog(
 
     fun show(
         activity: FragmentActivity,
-        reason:   String,
-        listener: VerificationErrorDialogListener
+        reason: String,
+        listener: VerificationErrorDialogListener,
     ) {
 
         WAKLogger.d(TAG, "show")
@@ -44,9 +44,11 @@ class VerificationErrorDialog(
 
         dialog.setContentView(R.layout.webauthn_verification_error_dialog)
 
-        dialog.findViewById<TextView>(R.id.webauthn_verification_error_title).text = config.errorDialogTitle
+        dialog.findViewById<TextView>(R.id.webauthn_verification_error_title).text =
+            config.errorDialogTitle
         dialog.findViewById<TextView>(R.id.webauthn_verification_error_reason).text = reason
-        dialog.findViewById<Button>(R.id.webauthn_verification_error_ok_button).text = config.errorDialogOKButtonTet
+        dialog.findViewById<Button>(R.id.webauthn_verification_error_ok_button).text =
+            config.errorDialogOKButtonTet
 
         dialog.findViewById<Button>(R.id.webauthn_verification_error_ok_button).setOnClickListener {
             WAKLogger.d(TAG, "ok clicked")
