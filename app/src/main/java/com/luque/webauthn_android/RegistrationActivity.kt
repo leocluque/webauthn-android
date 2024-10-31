@@ -1,7 +1,11 @@
 package com.luque.webauthn_android
 
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Base64
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
@@ -22,7 +26,7 @@ import com.luque.webauthn.data.UserVerificationRequirement
 import com.luque.webauthn.util.ByteArrayUtil
 import com.luque.webauthn.util.WAKLogger
 import kotlinx.coroutines.launch
-
+import java.security.MessageDigest
 
 
 class RegistrationActivity : AppCompatActivity() {
@@ -101,6 +105,7 @@ class RegistrationActivity : AppCompatActivity() {
 
     private fun createWebAuthnClient(): WebAuthClient {
         consentUI = UserConsentUIFactory.create(this)
+       val origin =  getAppSignatureSHA256Base64Url(this.packageName, this.packageManager)
         return WebAuthClient.create(
             activity = this,
             origin = "https://example.org",
@@ -141,7 +146,7 @@ class RegistrationActivity : AppCompatActivity() {
         relyingPartyICON: String,
         challenge: String,
         userVerification: UserVerificationRequirement,
-        attestationConveyance: AttestationConveyancePreference
+        attestationConveyance: AttestationConveyancePreference,
     ) {
         val options = PublicKeyCredentialCreationOptions().apply {
             this.challenge = ByteArrayUtil.fromHex(challenge)
@@ -182,5 +187,36 @@ class RegistrationActivity : AppCompatActivity() {
             putExtra("CLIENT_JSON", cred.response.clientDataJSON)
             startActivity(this)
         }
+    }
+
+
+
+    private fun getAppSignatureSHA256Base64Url(packageName: String, pm: PackageManager): String? {
+        try {
+            val packageInfo  = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                // Use GET_SIGNING_CERTIFICATES
+                pm.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+                // Handle the packageInfo
+            } else {
+                // Fallback for devices running API level < 28
+                pm.getPackageInfo(packageName, 0)
+                // Handle the packageInfo without signing certificates
+            }
+            val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.signingInfo.apkContentsSigners
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.signatures
+            }
+
+            val cert = signatures.first().toByteArray()
+            val messageDigest = MessageDigest.getInstance("SHA-256")
+            val sha256Digest = messageDigest.digest(cert)
+
+            return Base64.encodeToString(sha256Digest, Base64.URL_SAFE or Base64.NO_WRAP)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
     }
 }
